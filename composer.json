@@ -1,0 +1,29 @@
+{
+    "name": "emonkak/timespan",
+    "description": "An interval of time between two datetimes",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Shota Nozaki",
+            "email": "emonkak@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.5",
+        "herrera-io/doctrine-dateinterval": "^1.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "~4.4",
+        "satooshi/php-coveralls": "~1.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Emonkak\\TimeSpan\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Emonkak\\TimeSpan\\Tests\\": "tests/"
+        }
+    }
+}
