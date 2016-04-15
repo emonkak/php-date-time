@@ -264,12 +264,6 @@ class Interval
      */
     public function __toString()
     {
-        $timeZone = new \DateTimeZone('UTC');
-        $start = \DateTimeImmutable::createFromFormat('U.u', $this->start->format('U.u'))
-            ->setTimeZone($timeZone);
-        $end = \DateTimeImmutable::createFromFormat('U.u', $this->end->format('U.u'))
-            ->setTimeZone($timeZone);
-        $format = 'Y-m-d\TH:i:s.u\Z';
-        return $start->format($format) . '/' . $end->format($format);
+        return $this->start->format(\DateTime::ATOM) . '/' . $this->end->format(\DateTime::ATOM);
     }
 }

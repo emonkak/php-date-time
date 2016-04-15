@@ -818,7 +818,7 @@ class IntervalTest extends \PHPUnit_Framework_TestCase
     public function providerToString()
     {
         return [
-            [0, 0, 1, 100000, '1970-01-01T00:00:00.000000Z/1970-01-01T00:00:01.100000Z'],
+            [0, 0, 1, 0, '1970-01-01T00:00:00+00:00/1970-01-01T00:00:01+00:00'],
         ];
     }
 
