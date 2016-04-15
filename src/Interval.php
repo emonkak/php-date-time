@@ -1,13 +1,13 @@
 <?php
 
-namespace Emonkak\TimeSpan;
+namespace Emonkak\Interval;
 
 use Herrera\DateInterval\DateInterval;
 
 /**
  * Represents a time interval.
  */
-class TimeSpan
+class Interval
 {
     /**
      * The start datetime, inclusive.
@@ -38,7 +38,7 @@ class TimeSpan
     }
 
     /**
-     * Returns the start datetime, inclusive, of this TimeSpan.
+     * Returns the start datetime, inclusive, of this Interval.
      *
      * @return \DateTimeInterface
      */
@@ -48,7 +48,7 @@ class TimeSpan
     }
 
     /**
-     * Returns the end datetime, exclusive, of this TimeSpan.
+     * Returns the end datetime, exclusive, of this Interval.
      *
      * @return \DateTimeInterface
      */
@@ -58,59 +58,59 @@ class TimeSpan
     }
 
     /**
-     * Returns a copy of this TimeSpan with the start datetime altered.
+     * Returns a copy of this Interval with the start datetime altered.
      *
      * @param \DateTimeInterface $dateTime
      *
-     * @return TimeSpan
+     * @return Interval
      */
     public function withStart(\DateTimeInterface $start)
     {
-        return new TimeSpan($start, $this->end);
+        return new Interval($start, $this->end);
     }
 
     /**
-     * Returns a copy of this TimeSpan with the end datetime altered.
+     * Returns a copy of this Interval with the end datetime altered.
      *
      * @param \DateTimeInterface $end
      *
-     * @return TimeSpan
+     * @return Interval
      */
     public function withEnd(\DateTimeInterface $end)
     {
-        return new TimeSpan($this->start, $end);
+        return new Interval($this->start, $end);
     }
 
     /**
-     * Gets the gap between this time span and another time span.
+     * Gets the gap between this interval and another interval.
      *
-     * @param TimeSpan $other
+     * @param Interval $other
      *
-     * @return TimeSpan|null
+     * @return Interval|null
      */
-    public function gap(TimeSpan $other)
+    public function gap(Interval $other)
     {
         $otherStart = $other->start;
         $otherEnd = $other->end;
         $thisStart = $this->start;
         $thisEnd = $this->end;
         if ($thisStart > $otherEnd) {
-            return new TimeSpan($otherEnd, $thisStart);
+            return new Interval($otherEnd, $thisStart);
         } else if ($otherStart > $thisEnd) {
-            return new TimeSpan($thisEnd, $otherStart);
+            return new Interval($thisEnd, $otherStart);
         } else {
             return null;
         }
     }
 
     /**
-     * Gets the overlap between this time span and another time span.
+     * Gets the overlap between this interval and another interval.
      *
-     * @param TimeSpan $other
+     * @param Interval $other
      *
-     * @return TimeSpan
+     * @return Interval
      */
-    public function overlap(TimeSpan $other)
+    public function overlap(Interval $other)
     {
         if (!$this->overlaps($other)) {
             return null;
@@ -121,17 +121,17 @@ class TimeSpan
         $thisEnd = $this->end;
         $start = $thisStart > $otherStart ? $thisStart : $otherStart;
         $end = $thisEnd < $otherEnd ? $thisEnd : $otherEnd;
-        return new TimeSpan($start, $end);
+        return new Interval($start, $end);
     }
 
     /**
-     * Gets the covered time span between this TimeSpan and another time span.
+     * Gets the covered interval between this Interval and another interval.
      *
-     * @param TimeSpan $other
+     * @param Interval $other
      *
-     * @return TimeSpan
+     * @return Interval
      */
-    public function cover(TimeSpan $other)
+    public function cover(Interval $other)
     {
         $otherStart = $other->start;
         $otherEnd = $other->end;
@@ -139,17 +139,17 @@ class TimeSpan
         $thisEnd = $this->end;
         $start = $thisStart < $otherStart ? $thisStart : $otherStart;
         $end = $thisEnd > $otherEnd ? $thisEnd : $otherEnd;
-        return new TimeSpan($start, $end);
+        return new Interval($start, $end);
     }
 
     /**
-     * Gets the union between this TimeSpan and another time span.
+     * Gets the union between this Interval and another interval.
      *
-     * @param TimeSpan $timeSpan
+     * @param Interval $other
      *
-     * @return TimeSpan
+     * @return Interval
      */
-    public function union(TimeSpan $other)
+    public function union(Interval $other)
     {
         if (!$this->overlaps($other)) {
             return null;
@@ -158,13 +158,13 @@ class TimeSpan
     }
 
     /**
-     * Joins the time span between the adjacent.
+     * Joins the interval between the adjacent.
      *
-     * @param TimeSpan $other
+     * @param Interval $other
      *
-     * @return TimeSpan
+     * @return Interval
      */
-    public function join(TimeSpan $other)
+    public function join(Interval $other)
     {
         if (!$this->abuts($other)) {
             return null;
@@ -173,7 +173,7 @@ class TimeSpan
     }
 
     /**
-     * Returns a Duration representing the time elapsed in this TimeSpan.
+     * Returns a Duration representing the time elapsed in this Interval.
      *
      * @return DateInterval
      */
@@ -183,13 +183,13 @@ class TimeSpan
     }
 
     /**
-     * Does this time span abut with the time span specified.
+     * Does this interval abut with the interval specified.
      *
-     * @param TimeSpan $other
+     * @param Interval $other
      *
      * @return boolean
      */
-    public function abuts(TimeSpan $other)
+    public function abuts(Interval $other)
     {
         $otherStart = $other->start;
         $otherEnd = $other->end;
@@ -199,13 +199,13 @@ class TimeSpan
     }
 
     /**
-     * Does this time span contain the specified time span.
+     * Does this interval contain the specified interval.
      *
-     * @param TimeSpan $other
+     * @param Interval $other
      *
      * @return boolean
      */
-    public function contains(TimeSpan $other)
+    public function contains(Interval $other)
     {
         $otherStart = $other->start;
         $otherEnd = $other->end;
@@ -215,7 +215,7 @@ class TimeSpan
     }
 
     /**
-     * Does this time span contain the specified instant.
+     * Does this interval contain the specified instant.
      *
      * @param \DateTimeInterface $dateTime
      *
@@ -229,26 +229,26 @@ class TimeSpan
     }
 
     /**
-     * Checks if this TimeSpan is equal to the specified time.
+     * Checks if this Interval is equal to the specified time.
      *
-     * @param TimeSpan $other The span to compare to.
+     * @param Interval $other The interval to compare to.
      *
      * @return boolean
      */
-    public function isEqualTo(TimeSpan $other)
+    public function isEqualTo(Interval $other)
     {
         return $this->start->format('U.u') === $other->start->format('U.u')
                && $this->end->format('U.u') === $other->end->format('U.u');
     }
 
     /**
-     * Does this time span overlap the specified time span.
+     * Does this interval overlap the specified interval.
      *
-     * @param TimeSpan $other
+     * @param Interval $other
      *
      * @return boolean
      */
-    public function overlaps(TimeSpan $other)
+    public function overlaps(Interval $other)
     {
         $otherStart = $other->start;
         $otherEnd = $other->end;

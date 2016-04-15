@@ -1,5 +1,5 @@
 {
-    "name": "emonkak/timespan",
+    "name": "emonkak/interval",
     "description": "An interval of time between two datetimes",
     "license": "MIT",
     "authors": [
@@ -18,12 +18,12 @@
     },
     "autoload": {
         "psr-4": {
-            "Emonkak\\TimeSpan\\": "src/"
+            "Emonkak\\Interval\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Emonkak\\TimeSpan\\Tests\\": "tests/"
+            "Emonkak\\Interval\\Tests\\": "tests/"
         }
     }
 }

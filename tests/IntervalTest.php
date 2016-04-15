@@ -1,27 +1,27 @@
 <?php
 
-namespace Emonkak\TimeSpan\Tests;
+namespace Emonkak\Interval\Tests;
 
-use Emonkak\TimeSpan\TimeSpan;
-use Herrera\DateTimeSpan\DateTimeSpan;
+use Emonkak\Interval\Interval;
+use Herrera\DateInterval\DateInterval;
 
 /**
- * @covers Emonkak\TimeSpan\TimeSpan
+ * @covers Emonkak\Interval\Interval
  */
-class TimeSpanTest extends \PHPUnit_Framework_TestCase
+class IntervalTest extends \PHPUnit_Framework_TestCase
 {
     /**
      * @dataProvider providerConstructorThrowsInvalidArgumentException
      * @expectedException \InvalidArgumentException
      *
-     * @param integer $s1 The 1st time span's start second.
-     * @param integer $n1 The 1st time span's start micro second.
-     * @param integer $s2 The 1st time span's end second.
-     * @param integer $n2 The 1st time span's end micro second.
+     * @param integer $s1 The 1st interval's start second.
+     * @param integer $n1 The 1st interval's start micro second.
+     * @param integer $s2 The 1st interval's end second.
+     * @param integer $n2 The 1st interval's end micro second.
      */
     public function testConstructorThrowsInvalidArgumentException($s1, $n1, $s2, $n2)
     {
-        new TimeSpan(new \DateTimeImmutable('1970-01-01 00:00:01'), new \DateTimeImmutable('1970-01-01 00:00:00'));
+        new Interval(new \DateTimeImmutable('1970-01-01 00:00:01'), new \DateTimeImmutable('1970-01-01 00:00:00'));
     }
 
     /**
@@ -43,8 +43,8 @@ class TimeSpanTest extends \PHPUnit_Framework_TestCase
      */
     public function testWithStart($s, $n)
     {
-        $timeSpan = new TimeSpan($this->createDateTime(0), $this->createDateTime(100));
-        $this->assertTimeSpanIs($s, $n, 100, 0, $timeSpan->withStart($this->createDateTime($s, $n)));
+        $timeSpan = new Interval($this->createDateTime(0), $this->createDateTime(100));
+        $this->assertIntervalIs($s, $n, 100, 0, $timeSpan->withStart($this->createDateTime($s, $n)));
     }
 
     /**
@@ -68,8 +68,8 @@ class TimeSpanTest extends \PHPUnit_Framework_TestCase
      */
     public function testWithEnd($s, $n)
     {
-        $timeSpan = new TimeSpan($this->createDateTime(0), $this->createDateTime(100));
-        $this->assertTimeSpanIs(0, 0, $s, $n, $timeSpan->withEnd($this->createDateTime($s, $n)));
+        $timeSpan = new Interval($this->createDateTime(0), $this->createDateTime(100));
+        $this->assertIntervalIs(0, 0, $s, $n, $timeSpan->withEnd($this->createDateTime($s, $n)));
     }
 
     /**
@@ -88,15 +88,15 @@ class TimeSpanTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider providerGetDuration
      *
-     * @param integer $s1 The 1st time span's start second.
-     * @param integer $n1 The 1st time span's start micro second.
-     * @param integer $s2 The 1st time span's end second.
-     * @param integer $n2 The 1st time span's end micro second.
+     * @param integer $s1 The 1st interval's start second.
+     * @param integer $n1 The 1st interval's start micro second.
+     * @param integer $s2 The 1st interval's end second.
+     * @param integer $n2 The 1st interval's end micro second.
      * @param integer $expected The expected duration in seconds.
      */
     public function testGetDuration($s1, $n1, $s2, $n2, $expected)
     {
-        $timeSpan = new TimeSpan($this->createDateTime($s1, $n1), $this->createDateTime($s2, $n2));
+        $timeSpan = new Interval($this->createDateTime($s1, $n1), $this->createDateTime($s2, $n2));
 
         $this->assertSame($expected, (int) $timeSpan->getDuration()->toSeconds());
     }
@@ -116,21 +116,21 @@ class TimeSpanTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider providerGap
      *
-     * @param array      $first    The 1st time span's start and end pair.
-     * @param array      $second   The 1st time span's start and end pair.
-     * @param array|null $expected The expected time span's start and end pair.
+     * @param array      $first    The 1st interval's start and end pair.
+     * @param array      $second   The 1st interval's start and end pair.
+     * @param array|null $expected The expected interval's start and end pair.
      */
     public function testGap(array $first, array $second, $expected)
     {
-        $firstTimeSpan = new TimeSpan($this->createDateTime($first[0]), $this->createDateTime($first[1]));
-        $secondTimeSpan = new TimeSpan($this->createDateTime($second[0]), $this->createDateTime($second[1]));
+        $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
+        $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
 
         if ($expected !== null) {
-            $this->assertTimeSpanIs($expected[0], 0, $expected[1], 0, $firstTimeSpan->gap($secondTimeSpan));
-            $this->assertTimeSpanIs($expected[0], 0, $expected[1], 0, $secondTimeSpan->gap($firstTimeSpan));
+            $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $firstInterval->gap($secondInterval));
+            $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $secondInterval->gap($firstInterval));
         } else {
-            $this->assertNull($firstTimeSpan->gap($secondTimeSpan));
-            $this->assertNull($secondTimeSpan->gap($firstTimeSpan));
+            $this->assertNull($firstInterval->gap($secondInterval));
+            $this->assertNull($secondInterval->gap($firstInterval));
         }
     }
 
@@ -161,21 +161,21 @@ class TimeSpanTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider providerOverlap
      *
-     * @param array      $first    The 1st time span's start and end pair.
-     * @param array      $second   The 1st time span's start and end pair.
-     * @param array|null $expected The expected time span's start and end pair.
+     * @param array      $first    The 1st interval's start and end pair.
+     * @param array      $second   The 1st interval's start and end pair.
+     * @param array|null $expected The expected interval's start and end pair.
      */
     public function testOverlap(array $first, array $second, $expected)
     {
-        $firstTimeSpan = new TimeSpan($this->createDateTime($first[0]), $this->createDateTime($first[1]));
-        $secondTimeSpan = new TimeSpan($this->createDateTime($second[0]), $this->createDateTime($second[1]));
+        $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
+        $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
 
         if ($expected !== null) {
-            $this->assertTimeSpanIs($expected[0], 0, $expected[1], 0, $firstTimeSpan->overlap($secondTimeSpan));
-            $this->assertTimeSpanIs($expected[0], 0, $expected[1], 0, $secondTimeSpan->overlap($firstTimeSpan));
+            $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $firstInterval->overlap($secondInterval));
+            $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $secondInterval->overlap($firstInterval));
         } else {
-            $this->assertNull($firstTimeSpan->overlap($secondTimeSpan));
-            $this->assertNull($secondTimeSpan->overlap($firstTimeSpan));
+            $this->assertNull($firstInterval->overlap($secondInterval));
+            $this->assertNull($secondInterval->overlap($firstInterval));
         }
     }
 
@@ -215,17 +215,17 @@ class TimeSpanTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider providerCover
      *
-     * @param array      $first    The 1st time span's start and end pair.
-     * @param array      $second   The 1st time span's start and end pair.
-     * @param array|null $expected The expected time span's start and end pair.
+     * @param array      $first    The 1st interval's start and end pair.
+     * @param array      $second   The 1st interval's start and end pair.
+     * @param array|null $expected The expected interval's start and end pair.
      */
     public function testCover(array $first, array $second, $expected)
     {
-        $firstTimeSpan = new TimeSpan($this->createDateTime($first[0]), $this->createDateTime($first[1]));
-        $secondTimeSpan = new TimeSpan($this->createDateTime($second[0]), $this->createDateTime($second[1]));
+        $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
+        $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
 
-        $this->assertTimeSpanIs($expected[0], 0, $expected[1], 0, $firstTimeSpan->cover($secondTimeSpan));
-        $this->assertTimeSpanIs($expected[0], 0, $expected[1], 0, $secondTimeSpan->cover($firstTimeSpan));
+        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $firstInterval->cover($secondInterval));
+        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $secondInterval->cover($firstInterval));
     }
 
     /**
@@ -264,21 +264,21 @@ class TimeSpanTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider providerUnion
      *
-     * @param array      $first    The 1st time span's start and end pair.
-     * @param array      $second   The 1st time span's start and end pair.
-     * @param array|null $expected The expected time span's start and end pair.
+     * @param array      $first    The 1st interval's start and end pair.
+     * @param array      $second   The 1st interval's start and end pair.
+     * @param array|null $expected The expected interval's start and end pair.
      */
     public function testUnion(array $first, array $second, $expected)
     {
-        $firstTimeSpan = new TimeSpan($this->createDateTime($first[0]), $this->createDateTime($first[1]));
-        $secondTimeSpan = new TimeSpan($this->createDateTime($second[0]), $this->createDateTime($second[1]));
+        $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
+        $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
 
         if ($expected !== null) {
-            $this->assertTimeSpanIs($expected[0], 0, $expected[1], 0, $firstTimeSpan->union($secondTimeSpan));
-            $this->assertTimeSpanIs($expected[0], 0, $expected[1], 0, $secondTimeSpan->union($firstTimeSpan));
+            $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $firstInterval->union($secondInterval));
+            $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $secondInterval->union($firstInterval));
         } else {
-            $this->assertNull($firstTimeSpan->union($secondTimeSpan));
-            $this->assertNull($secondTimeSpan->union($firstTimeSpan));
+            $this->assertNull($firstInterval->union($secondInterval));
+            $this->assertNull($secondInterval->union($firstInterval));
         }
     }
 
@@ -318,21 +318,21 @@ class TimeSpanTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider providerJoin
      *
-     * @param array      $first    The 1st time span's start and end pair.
-     * @param array      $second   The 1st time span's start and end pair.
-     * @param array|null $expected The expected time span's start and end pair.
+     * @param array      $first    The 1st interval's start and end pair.
+     * @param array      $second   The 1st interval's start and end pair.
+     * @param array|null $expected The expected interval's start and end pair.
      */
     public function testJoin(array $first, array $second, $expected)
     {
-        $firstTimeSpan = new TimeSpan($this->createDateTime($first[0]), $this->createDateTime($first[1]));
-        $secondTimeSpan = new TimeSpan($this->createDateTime($second[0]), $this->createDateTime($second[1]));
+        $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
+        $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
 
         if ($expected !== null) {
-            $this->assertTimeSpanIs($expected[0], 0, $expected[1], 0, $firstTimeSpan->join($secondTimeSpan));
-            $this->assertTimeSpanIs($expected[0], 0, $expected[1], 0, $secondTimeSpan->join($firstTimeSpan));
+            $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $firstInterval->join($secondInterval));
+            $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $secondInterval->join($firstInterval));
         } else {
-            $this->assertNull($firstTimeSpan->join($secondTimeSpan));
-            $this->assertNull($secondTimeSpan->join($firstTimeSpan));
+            $this->assertNull($firstInterval->join($secondInterval));
+            $this->assertNull($secondInterval->join($firstInterval));
         }
     }
 
@@ -372,20 +372,20 @@ class TimeSpanTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider providerAbuts
      *
-     * @param integer $h1             The 1st time span's start hour.
-     * @param integer $m1             The 1st time span's start minute.
-     * @param integer $h2             The 1st time span's end hour.
-     * @param integer $m2             The 1st time span's end minute.
-     * @param integer $h3             The 2nd time span's start hour.
-     * @param integer $m3             The 2nd time span's start minute.
-     * @param integer $h4             The 2nd time span's end hour.
-     * @param integer $m4             The 2nd time span's end minute.
+     * @param integer $h1             The 1st interval's start hour.
+     * @param integer $m1             The 1st interval's start minute.
+     * @param integer $h2             The 1st interval's end hour.
+     * @param integer $m2             The 1st interval's end minute.
+     * @param integer $h3             The 2nd interval's start hour.
+     * @param integer $m3             The 2nd interval's start minute.
+     * @param integer $h4             The 2nd interval's end hour.
+     * @param integer $m4             The 2nd interval's end minute.
      * @param integer $expectedResult The expected result.
      */
     public function testAbuts($h1, $m1, $h2, $m2, $h3, $m3, $h4, $m4, $expectedResult)
     {
-        $timeSpan1 = new TimeSpan($this->createDateTime($h1 * 3600 + $m1 * 60), $this->createDateTime($h2 * 3600 + $m2 * 60));
-        $timeSpan2 = new TimeSpan($this->createDateTime($h3 * 3600 + $m3 * 60), $this->createDateTime($h4 * 3600 + $m4 * 60));
+        $timeSpan1 = new Interval($this->createDateTime($h1 * 3600 + $m1 * 60), $this->createDateTime($h2 * 3600 + $m2 * 60));
+        $timeSpan2 = new Interval($this->createDateTime($h3 * 3600 + $m3 * 60), $this->createDateTime($h4 * 3600 + $m4 * 60));
 
         $this->assertSame($expectedResult, $timeSpan1->abuts($timeSpan2));
     }
@@ -478,20 +478,20 @@ class TimeSpanTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider providerContains
      *
-     * @param integer $h1             The 1st time span's start hour.
-     * @param integer $m1             The 1st time span's start minute.
-     * @param integer $h2             The 1st time span's end hour.
-     * @param integer $m2             The 1st time span's end minute.
-     * @param integer $h3             The 2nd time span's start hour.
-     * @param integer $m3             The 2nd time span's start minute.
-     * @param integer $h4             The 2nd time span's end hour.
-     * @param integer $m4             The 2nd time span's end minute.
+     * @param integer $h1             The 1st interval's start hour.
+     * @param integer $m1             The 1st interval's start minute.
+     * @param integer $h2             The 1st interval's end hour.
+     * @param integer $m2             The 1st interval's end minute.
+     * @param integer $h3             The 2nd interval's start hour.
+     * @param integer $m3             The 2nd interval's start minute.
+     * @param integer $h4             The 2nd interval's end hour.
+     * @param integer $m4             The 2nd interval's end minute.
      * @param integer $expectedResult The expected result.
      */
     public function testContains($h1, $m1, $h2, $m2, $h3, $m3, $h4, $m4, $expectedResult)
     {
-        $timeSpan1 = new TimeSpan($this->createDateTime($h1 * 3600 + $m1 * 60), $this->createDateTime($h2 * 3600 + $m2 * 60));
-        $timeSpan2 = new TimeSpan($this->createDateTime($h3 * 3600 + $m3 * 60), $this->createDateTime($h4 * 3600 + $m4 * 60));
+        $timeSpan1 = new Interval($this->createDateTime($h1 * 3600 + $m1 * 60), $this->createDateTime($h2 * 3600 + $m2 * 60));
+        $timeSpan2 = new Interval($this->createDateTime($h3 * 3600 + $m3 * 60), $this->createDateTime($h4 * 3600 + $m4 * 60));
 
         $this->assertSame($expectedResult, $timeSpan1->contains($timeSpan2));
     }
@@ -570,17 +570,17 @@ class TimeSpanTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider providerContainsInstant
      *
-     * @param integer $h1             The time span's start hour.
-     * @param integer $m1             The time span's start minute.
-     * @param integer $h2             The time span's end hour.
-     * @param integer $m2             The time span's end minute.
+     * @param integer $h1             The interval's start hour.
+     * @param integer $m1             The interval's start minute.
+     * @param integer $h2             The interval's end hour.
+     * @param integer $m2             The interval's end minute.
      * @param integer $h3             The hour of the test datetime.
      * @param integer $m3             The minute of the test datetime.
      * @param integer $expectedResult The expected result.
      */
     public function testContainsInstant($h1, $m1, $h2, $m2, $h3, $m3, $expectedResult)
     {
-        $timeSpan = new TimeSpan($this->createDateTime($h1 * 3600 + $m1 * 60), $this->createDateTime($h2 * 3600 + $m2 * 60));
+        $timeSpan = new Interval($this->createDateTime($h1 * 3600 + $m1 * 60), $this->createDateTime($h2 * 3600 + $m2 * 60));
         $instant = $this->createDateTime($h3 * 3600 + $m3 * 60);
 
         $this->assertSame($expectedResult, $timeSpan->containsInstant($instant));
@@ -615,20 +615,20 @@ class TimeSpanTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider providerOverlaps
      *
-     * @param integer $h1             The 1st time span's start hour.
-     * @param integer $m1             The 1st time span's start minute.
-     * @param integer $h2             The 1st time span's end hour.
-     * @param integer $m2             The 1st time span's end minute.
-     * @param integer $h3             The 2nd time span's start hour.
-     * @param integer $m3             The 2nd time span's start minute.
-     * @param integer $h4             The 2nd time span's end hour.
-     * @param integer $m4             The 2nd time span's end minute.
+     * @param integer $h1             The 1st interval's start hour.
+     * @param integer $m1             The 1st interval's start minute.
+     * @param integer $h2             The 1st interval's end hour.
+     * @param integer $m2             The 1st interval's end minute.
+     * @param integer $h3             The 2nd interval's start hour.
+     * @param integer $m3             The 2nd interval's start minute.
+     * @param integer $h4             The 2nd interval's end hour.
+     * @param integer $m4             The 2nd interval's end minute.
      * @param integer $expectedResult The expected result.
      */
     public function testOverlaps($h1, $m1, $h2, $m2, $h3, $m3, $h4, $m4, $expectedResult)
     {
-        $timeSpan1 = new TimeSpan($this->createDateTime($h1 * 3600 + $m1 * 60), $this->createDateTime($h2 * 3600 + $m2 * 60));
-        $timeSpan2 = new TimeSpan($this->createDateTime($h3 * 3600 + $m3 * 60), $this->createDateTime($h4 * 3600 + $m4 * 60));
+        $timeSpan1 = new Interval($this->createDateTime($h1 * 3600 + $m1 * 60), $this->createDateTime($h2 * 3600 + $m2 * 60));
+        $timeSpan2 = new Interval($this->createDateTime($h3 * 3600 + $m3 * 60), $this->createDateTime($h4 * 3600 + $m4 * 60));
 
         $this->assertSame($expectedResult, $timeSpan1->overlaps($timeSpan2));
     }
@@ -763,20 +763,20 @@ class TimeSpanTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider providerIsEqualTo
      *
-     * @param integer $s1             The 1st time span's start second.
-     * @param integer $n1             The 1st time span's start micro second.
-     * @param integer $s2             The 1st time span's end second.
-     * @param integer $n2             The 1st time span's end micro second.
-     * @param integer $s3             The 2st time span's start second.
-     * @param integer $n3             The 2st time span's start micro second.
-     * @param integer $s4             The 2nd time span's end second.
-     * @param integer $n4             The 2nd time span's end micro second.
+     * @param integer $s1             The 1st interval's start second.
+     * @param integer $n1             The 1st interval's start micro second.
+     * @param integer $s2             The 1st interval's end second.
+     * @param integer $n2             The 1st interval's end micro second.
+     * @param integer $s3             The 2st interval's start second.
+     * @param integer $n3             The 2st interval's start micro second.
+     * @param integer $s4             The 2nd interval's end second.
+     * @param integer $n4             The 2nd interval's end micro second.
      * @param integer $expectedResult The expected result.
      */
     public function testIsEqualTo($s1, $n1, $s2, $n2, $s3, $n3, $s4, $n4, $expectedResult)
     {
-        $timeSpan1 = new TimeSpan($this->createDateTime($s1, $n1), $this->createDateTime($s2, $n2));
-        $timeSpan2 = new TimeSpan($this->createDateTime($s3, $n3), $this->createDateTime($s4, $n4));
+        $timeSpan1 = new Interval($this->createDateTime($s1, $n1), $this->createDateTime($s2, $n2));
+        $timeSpan2 = new Interval($this->createDateTime($s3, $n3), $this->createDateTime($s4, $n4));
 
         $this->assertSame($expectedResult, $timeSpan1->isEqualTo($timeSpan2));
     }
@@ -799,15 +799,15 @@ class TimeSpanTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider providerToString
      *
-     * @param integer $s1             The time span's start second.
-     * @param integer $n1             The time span's start micro second.
-     * @param integer $s2             The time span's end second.
-     * @param integer $n2             The time span's end micro second.
+     * @param integer $s1             The interval's start second.
+     * @param integer $n1             The interval's start micro second.
+     * @param integer $s2             The interval's end second.
+     * @param integer $n2             The interval's end micro second.
      * @param string  $expectedResult The expected result.
      */
     public function testToString($s1, $n1, $s2, $n2, $expectedResult)
     {
-        $timeSpan = new TimeSpan($this->createDateTime($s1, $n1), $this->createDateTime($s2, $n2));
+        $timeSpan = new Interval($this->createDateTime($s1, $n1), $this->createDateTime($s2, $n2));
 
         $this->assertSame($expectedResult, (string) $timeSpan);
     }
@@ -835,9 +835,9 @@ class TimeSpanTest extends \PHPUnit_Framework_TestCase
      * @param integer  $n1       The expected micro second adjustment of the start datetime.
      * @param integer  $s1       The expected epoch second of the start datetime.
      * @param integer  $n1       The expected micro second adjustment of the start datetime.
-     * @param TimeSpan $timeSpan The time span to test.
+     * @param Interval $timeSpan The interval to test.
      */
-    private function assertTimeSpanIs($s1, $n1, $s2, $n2, TimeSpan $timeSpan)
+    private function assertIntervalIs($s1, $n1, $s2, $n2, Interval $timeSpan)
     {
         $this->compare([$s1, $n1, $s2, $n2], [
             (int) $timeSpan->getStart()->format('U'),
