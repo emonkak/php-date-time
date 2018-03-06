@@ -1,6 +1,6 @@
 {
-    "name": "emonkak/interval",
-    "description": "An interval of time between two datetimes",
+    "name": "emonkak/date-time",
+    "description": "A date and time library fitted to built-in DateTimeInterface",
     "license": "MIT",
     "authors": [
         {
@@ -9,21 +9,20 @@
         }
     ],
     "require": {
-        "php": ">=5.5",
-        "herrera-io/doctrine-dateinterval": "^1.0"
+        "php": ">=7.1"
     },
     "require-dev": {
-        "phpunit/phpunit": "~4.4",
-        "satooshi/php-coveralls": "~1.0.0"
+        "phpunit/phpunit": "^7.0",
+        "satooshi/php-coveralls": "^1.0"
     },
     "autoload": {
         "psr-4": {
-            "Emonkak\\Interval\\": "src/"
+            "Emonkak\\DateTime\\": "src/"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "Emonkak\\Interval\\Tests\\": "tests/"
+            "Emonkak\\DateTime\\Tests\\": "tests/"
         }
     }
 }

@@ -1,33 +1,26 @@
 <?php
 
-namespace Emonkak\Interval\Tests;
+declare(strict_types=1);
 
-use Emonkak\Interval\Interval;
-use Herrera\DateInterval\DateInterval;
+namespace Emonkak\DateTime\Tests;
+
+use Emonkak\DateTime\Interval;
 
 /**
- * @covers Emonkak\Interval\Interval
+ * @covers Emonkak\DateTime\Interval
  */
-class IntervalTest extends \PHPUnit_Framework_TestCase
+class IntervalTest extends AbstractTestCase
 {
     /**
      * @dataProvider providerConstructorThrowsInvalidArgumentException
-     * @expectedException \InvalidArgumentException
-     *
-     * @param integer $s1 The 1st interval's start second.
-     * @param integer $n1 The 1st interval's start micro second.
-     * @param integer $s2 The 1st interval's end second.
-     * @param integer $n2 The 1st interval's end micro second.
+     * @expectedException Emonkak\DateTime\DateTimeException
      */
-    public function testConstructorThrowsInvalidArgumentException($s1, $n1, $s2, $n2)
+    public function testConstructorThrowsInvalidArgumentException(int $s1, int $n1, int $s2, int $n2): void
     {
         new Interval(new \DateTimeImmutable('1970-01-01 00:00:01'), new \DateTimeImmutable('1970-01-01 00:00:00'));
     }
 
-    /**
-     * @return array
-     */
-    public function providerConstructorThrowsInvalidArgumentException()
+    public function providerConstructorThrowsInvalidArgumentException(): array
     {
         return [
             [1, 0, 0, 0],
@@ -37,24 +30,18 @@ class IntervalTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerWithStart
-     *
-     * @param integer $s The new start second.
-     * @param integer $n The new start micro second.
      */
-    public function testWithStart($s, $n)
+    public function testWithStart(int $s, int $n): void
     {
-        $timeSpan = new Interval($this->createDateTime(0), $this->createDateTime(100));
-        $this->assertIntervalIs($s, $n, 100, 0, $timeSpan->withStart($this->createDateTime($s, $n)));
+        $interval = new Interval($this->createDateTime(0), $this->createDateTime(100));
+        $this->assertIntervalIs($s, $n, 100, 0, $interval->withStart($this->createDateTime($s, $n)));
     }
 
-    /**
-     * @return array
-     */
-    public function providerWithStart()
+    public function providerWithStart(): array
     {
         return [
-            [12, 34],
-            [0, 34],
+            [12, 34000],
+            [0, 34000],
             [12, 0],
             [0, 0]
         ];
@@ -62,24 +49,18 @@ class IntervalTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerWithEnd
-     *
-     * @param integer $s The new end second.
-     * @param integer $n The new end micro second.
      */
-    public function testWithEnd($s, $n)
+    public function testWithEnd(int $s, int $n): void
     {
-        $timeSpan = new Interval($this->createDateTime(0), $this->createDateTime(100));
-        $this->assertIntervalIs(0, 0, $s, $n, $timeSpan->withEnd($this->createDateTime($s, $n)));
+        $interval = new Interval($this->createDateTime(0), $this->createDateTime(100));
+        $this->assertIntervalIs(0, 0, $s, $n, $interval->withEnd($this->createDateTime($s, $n)));
     }
 
-    /**
-     * @return array
-     */
-    public function providerWithEnd()
+    public function providerWithEnd(): array
     {
         return [
-            [12, 34],
-            [0, 34],
+            [12, 34000],
+            [0, 34000],
             [12, 0],
             [0, 0]
         ];
@@ -87,110 +68,88 @@ class IntervalTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerGetDuration
-     *
-     * @param integer $s1 The 1st interval's start second.
-     * @param integer $n1 The 1st interval's start micro second.
-     * @param integer $s2 The 1st interval's end second.
-     * @param integer $n2 The 1st interval's end micro second.
-     * @param integer $expected The expected duration in seconds.
      */
-    public function testGetDuration($s1, $n1, $s2, $n2, $expected)
+    public function testGetDuration(int $s1, int $m1, int $s2, int $m2, int $s, int $n): void
     {
-        $timeSpan = new Interval($this->createDateTime($s1, $n1), $this->createDateTime($s2, $n2));
+        $interval = new Interval($this->createDateTime($s1, $m1), $this->createDateTime($s2, $m2));
 
-        $this->assertSame($expected, (int) $timeSpan->getDuration()->toSeconds());
+        $this->assertDurationIs($s, $n, $interval->getDuration());
     }
 
-    /**
-     * @return array
-     */
-    public function providerGetDuration()
+    public function providerGetDuration(): array
     {
         return [
-            [0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 1],
-            [1, 0, 2, 0, 1]
+            [0, 0, 0, 0, 0, 0],
+            [1999999999, 555555000, 2000000001, 111000, 1, 444556000],
         ];
     }
 
     /**
      * @dataProvider providerGap
-     *
-     * @param array      $first    The 1st interval's start and end pair.
-     * @param array      $second   The 1st interval's start and end pair.
-     * @param array|null $expected The expected interval's start and end pair.
      */
-    public function testGap(array $first, array $second, $expected)
+    public function testGap(array $first, array $second, array $expected): void
     {
         $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
         $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
 
-        if ($expected !== null) {
-            $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $firstInterval->gap($secondInterval));
-            $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $secondInterval->gap($firstInterval));
-        } else {
-            $this->assertNull($firstInterval->gap($secondInterval));
-            $this->assertNull($secondInterval->gap($firstInterval));
-        }
+        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $firstInterval->gap($secondInterval));
+        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $secondInterval->gap($firstInterval));
     }
 
-    /**
-     * @return array
-     */
-    public function providerGap()
+    public function providerGap(): array
     {
         return [
             [[3, 7], [0, 1], [1, 3]],
             [[3, 7], [1, 1], [1, 3]],
-            [[3, 7], [2, 3], null],  // abuts before
-            [[3, 7], [3, 3], null],  // abuts before
-            [[3, 7], [4, 6], null],  // overlaps
-            [[3, 7], [3, 7], null],  // overlaps
-            [[3, 7], [6, 7], null],  // overlaps
-            [[3, 7], [7, 7], null],  // abuts before
-            [[3, 7], [6, 8], null],  // overlaps
-            [[3, 7], [7, 8], null],  // abuts after
             [[3, 7], [8, 8], [7, 8]],
-            [[3, 7], [6, 9], null],  // overlaps
-            [[3, 7], [7, 9], null],  // abuts after
             [[3, 7], [8, 9], [7, 8]],
             [[3, 7], [9, 9], [7, 9]]
         ];
     }
 
     /**
-     * @dataProvider providerOverlap
-     *
-     * @param array      $first    The 1st interval's start and end pair.
-     * @param array      $second   The 1st interval's start and end pair.
-     * @param array|null $expected The expected interval's start and end pair.
+     * @dataProvider providerGapReturnsNull
      */
-    public function testOverlap(array $first, array $second, $expected)
+    public function testGapReturnsNull(array $first, array $second): void
     {
         $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
         $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
 
-        if ($expected !== null) {
-            $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $firstInterval->overlap($secondInterval));
-            $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $secondInterval->overlap($firstInterval));
-        } else {
-            $this->assertNull($firstInterval->overlap($secondInterval));
-            $this->assertNull($secondInterval->overlap($firstInterval));
-        }
+        $this->assertNull($firstInterval->gap($secondInterval));
+        $this->assertNull($secondInterval->gap($firstInterval));
+    }
+
+    public function providerGapReturnsNull(): array
+    {
+        return [
+            [[3, 7], [2, 3]],  // abuts before
+            [[3, 7], [3, 3]],  // abuts before
+            [[3, 7], [4, 6]],  // overlaps
+            [[3, 7], [3, 7]],  // overlaps
+            [[3, 7], [6, 7]],  // overlaps
+            [[3, 7], [7, 7]],  // abuts before
+            [[3, 7], [6, 8]],  // overlaps
+            [[3, 7], [7, 8]],  // abuts after
+            [[3, 7], [6, 9]],  // overlaps
+            [[3, 7], [7, 9]],  // abuts after
+        ];
     }
 
     /**
-     * @return array
+     * @dataProvider providerOverlap
      */
-    public function providerOverlap()
+    public function testOverlap(array $first, array $second, array $expected): void
+    {
+        $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
+        $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
+
+        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $firstInterval->overlap($secondInterval));
+        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $secondInterval->overlap($firstInterval));
+    }
+
+    public function providerOverlap(): array
     {
         return [
-            [[3, 7], [1, 2],   null],  // gap before
-            [[3, 7], [2, 2],   null],  // gap before
-
-            [[3, 7], [2, 3],   null],  // abuts before
-            [[3, 7], [3, 3],   null],  // abuts before
-
             [[3, 7], [2, 4], [3, 4]],  // truncated start
             [[3, 7], [3, 4], [3, 4]],
             [[3, 7], [4, 4], [4, 4]],
@@ -200,26 +159,44 @@ class IntervalTest extends \PHPUnit_Framework_TestCase
             [[3, 7], [4, 7], [4, 7]],
             [[3, 7], [5, 7], [5, 7]],
             [[3, 7], [6, 7], [6, 7]],
-            [[3, 7], [7, 7],   null],  // abuts after
 
             [[3, 7], [2, 8], [3, 7]],  // truncated start and end
             [[3, 7], [3, 8], [3, 7]],  // truncated end
             [[3, 7], [4, 8], [4, 7]],  // truncated end
             [[3, 7], [5, 8], [5, 7]],  // truncated end
             [[3, 7], [6, 8], [6, 7]],  // truncated end
-            [[3, 7], [7, 8],   null],  // abuts after
-            [[3, 7], [8, 8],   null],  // gap after
+        ];
+    }
+
+    /**
+     * @dataProvider providerOverlapReturnsNull
+     */
+    public function testOverlapReturnsNull(array $first, array $second): void
+    {
+        $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
+        $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
+
+        $this->assertNull($firstInterval->overlap($secondInterval));
+        $this->assertNull($secondInterval->overlap($firstInterval));
+    }
+
+    public function providerOverlapReturnsNull(): array
+    {
+        return [
+            [[3, 7], [1, 2]],  // gap before
+            [[3, 7], [2, 2]],  // gap before
+            [[3, 7], [2, 3]],  // abuts before
+            [[3, 7], [3, 3]],  // abuts before
+            [[3, 7], [7, 7]],  // abuts after
+            [[3, 7], [7, 8]],  // abuts after
+            [[3, 7], [8, 8]],  // gap after
         ];
     }
 
     /**
      * @dataProvider providerCover
-     *
-     * @param array      $first    The 1st interval's start and end pair.
-     * @param array      $second   The 1st interval's start and end pair.
-     * @param array|null $expected The expected interval's start and end pair.
      */
-    public function testCover(array $first, array $second, $expected)
+    public function testCover(array $first, array $second, array $expected): void
     {
         $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
         $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
@@ -228,10 +205,7 @@ class IntervalTest extends \PHPUnit_Framework_TestCase
         $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $secondInterval->cover($firstInterval));
     }
 
-    /**
-     * @return array
-     */
-    public function providerCover()
+    public function providerCover(): array
     {
         return [
             [[3, 7], [1, 2], [1, 7]],  // gap before
@@ -263,37 +237,19 @@ class IntervalTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerUnion
-     *
-     * @param array      $first    The 1st interval's start and end pair.
-     * @param array      $second   The 1st interval's start and end pair.
-     * @param array|null $expected The expected interval's start and end pair.
      */
-    public function testUnion(array $first, array $second, $expected)
+    public function testUnion(array $first, array $second, array $expected): void
     {
         $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
         $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
 
-        if ($expected !== null) {
-            $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $firstInterval->union($secondInterval));
-            $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $secondInterval->union($firstInterval));
-        } else {
-            $this->assertNull($firstInterval->union($secondInterval));
-            $this->assertNull($secondInterval->union($firstInterval));
-        }
+        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $firstInterval->union($secondInterval));
+        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $secondInterval->union($firstInterval));
     }
 
-    /**
-     * @return array
-     */
-    public function providerUnion()
+    public function providerUnion(): array
     {
         return [
-            [[3, 7], [1, 2],   null],  // gap before
-            [[3, 7], [2, 2],   null],  // gap before
-
-            [[3, 7], [2, 3],   null],  // abuts before
-            [[3, 7], [3, 3],   null],  // abuts before
-
             [[3, 7], [2, 4], [2, 7]],  // truncated start
             [[3, 7], [3, 4], [3, 7]],
             [[3, 7], [4, 4], [3, 7]],
@@ -303,86 +259,103 @@ class IntervalTest extends \PHPUnit_Framework_TestCase
             [[3, 7], [4, 7], [3, 7]],
             [[3, 7], [5, 7], [3, 7]],
             [[3, 7], [6, 7], [3, 7]],
-            [[3, 7], [7, 7],   null],  // abuts after
 
             [[3, 7], [2, 8], [2, 8]],  // truncated start and end
             [[3, 7], [3, 8], [3, 8]],  // truncated end
             [[3, 7], [4, 8], [3, 8]],  // truncated end
             [[3, 7], [5, 8], [3, 8]],  // truncated end
             [[3, 7], [6, 8], [3, 8]],  // truncated end
-            [[3, 7], [7, 8],   null],  // abuts after
-            [[3, 7], [8, 8],   null]   // gap after
+        ];
+    }
+
+    /**
+     * @dataProvider providerUnionReturnsNull
+     */
+    public function testUnionReturnsNull(array $first, array $second): void
+    {
+        $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
+        $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
+
+        $this->assertNull($firstInterval->union($secondInterval));
+        $this->assertNull($secondInterval->union($firstInterval));
+    }
+
+    public function providerUnionReturnsNull(): array
+    {
+        return [
+            [[3, 7], [1, 2]],  // gap before
+            [[3, 7], [2, 2]],  // gap before
+            [[3, 7], [2, 3]],  // abuts before
+            [[3, 7], [3, 3]],  // abuts before
+            [[3, 7], [7, 7]],  // abuts after
+            [[3, 7], [7, 8]],  // abuts after
+            [[3, 7], [8, 8]]   // gap after
         ];
     }
 
     /**
      * @dataProvider providerJoin
-     *
-     * @param array      $first    The 1st interval's start and end pair.
-     * @param array      $second   The 1st interval's start and end pair.
-     * @param array|null $expected The expected interval's start and end pair.
      */
-    public function testJoin(array $first, array $second, $expected)
+    public function testJoin(array $first, array $second, array $expected): void
     {
         $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
         $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
 
-        if ($expected !== null) {
-            $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $firstInterval->join($secondInterval));
-            $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $secondInterval->join($firstInterval));
-        } else {
-            $this->assertNull($firstInterval->join($secondInterval));
-            $this->assertNull($secondInterval->join($firstInterval));
-        }
+        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $firstInterval->join($secondInterval));
+        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $secondInterval->join($firstInterval));
+    }
+
+    public function providerJoin(): array
+    {
+        return [
+            [[3, 7], [2, 3], [2, 7]],  // abuts before
+            [[3, 7], [3, 3], [3, 7]],  // abuts before
+            [[3, 7], [7, 7], [3, 7]],  // abuts after
+            [[3, 7], [7, 8], [3, 8]],  // abuts after
+        ];
     }
 
     /**
-     * @return array
+     * @dataProvider providerJoinReturnsNull
      */
-    public function providerJoin()
+    public function testJoinReturnsNull(array $first, array $second): void
+    {
+        $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
+        $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
+
+        $this->assertNull($firstInterval->join($secondInterval));
+        $this->assertNull($secondInterval->join($firstInterval));
+    }
+
+    public function providerJoinReturnsNull(): array
     {
         return [
-            [[3, 7], [1, 2],   null],  // gap before
-            [[3, 7], [2, 2],   null],  // gap before
+            [[3, 7], [1, 2]],  // gap before
+            [[3, 7], [2, 2]],  // gap before
 
-            [[3, 7], [2, 3], [2, 7]],  // abuts before
-            [[3, 7], [3, 3], [3, 7]],  // abuts before
+            [[3, 7], [2, 4]],  // truncated start
+            [[3, 7], [3, 4]],
+            [[3, 7], [4, 4]],
 
-            [[3, 7], [2, 4],   null],  // truncated start
-            [[3, 7], [3, 4],   null],
-            [[3, 7], [4, 4],   null],
+            [[3, 7], [2, 7]],  // truncated start
+            [[3, 7], [3, 7]],
+            [[3, 7], [4, 7]],
+            [[3, 7], [5, 7]],
+            [[3, 7], [6, 7]],
 
-            [[3, 7], [2, 7],   null],  // truncated start
-            [[3, 7], [3, 7],   null],
-            [[3, 7], [4, 7],   null],
-            [[3, 7], [5, 7],   null],
-            [[3, 7], [6, 7],   null],
-            [[3, 7], [7, 7], [3, 7]],  // abuts after
-
-            [[3, 7], [2, 8],   null],  // truncated start and end
-            [[3, 7], [3, 8],   null],  // truncated end
-            [[3, 7], [4, 8],   null],  // truncated end
-            [[3, 7], [5, 8],   null],  // truncated end
-            [[3, 7], [6, 8],   null],  // truncated end
-            [[3, 7], [7, 8], [3, 8]],  // abuts after
-            [[3, 7], [8, 8],   null]   // gap after
+            [[3, 7], [2, 8]],  // truncated start and end
+            [[3, 7], [3, 8]],  // truncated end
+            [[3, 7], [4, 8]],  // truncated end
+            [[3, 7], [5, 8]],  // truncated end
+            [[3, 7], [6, 8]],  // truncated end
+            [[3, 7], [8, 8]]   // gap after
         ];
     }
 
     /**
      * @dataProvider providerAbuts
-     *
-     * @param integer $h1             The 1st interval's start hour.
-     * @param integer $m1             The 1st interval's start minute.
-     * @param integer $h2             The 1st interval's end hour.
-     * @param integer $m2             The 1st interval's end minute.
-     * @param integer $h3             The 2nd interval's start hour.
-     * @param integer $m3             The 2nd interval's start minute.
-     * @param integer $h4             The 2nd interval's end hour.
-     * @param integer $m4             The 2nd interval's end minute.
-     * @param integer $expectedResult The expected result.
      */
-    public function testAbuts($h1, $m1, $h2, $m2, $h3, $m3, $h4, $m4, $expectedResult)
+    public function testAbuts(int $h1, int $m1, int $h2, int $m2, int $h3, int $m3, int $h4, int $m4, bool $expectedResult): void
     {
         $timeSpan1 = new Interval($this->createDateTime($h1 * 3600 + $m1 * 60), $this->createDateTime($h2 * 3600 + $m2 * 60));
         $timeSpan2 = new Interval($this->createDateTime($h3 * 3600 + $m3 * 60), $this->createDateTime($h4 * 3600 + $m4 * 60));
@@ -390,10 +363,7 @@ class IntervalTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($expectedResult, $timeSpan1->abuts($timeSpan2));
     }
 
-    /**
-     * @return array
-     */
-    public function providerAbuts()
+    public function providerAbuts(): array
     {
         return [
             // [09:00 to 10:00) abuts [08:00 to 08:30) = false (completely before)
@@ -477,18 +447,8 @@ class IntervalTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerContains
-     *
-     * @param integer $h1             The 1st interval's start hour.
-     * @param integer $m1             The 1st interval's start minute.
-     * @param integer $h2             The 1st interval's end hour.
-     * @param integer $m2             The 1st interval's end minute.
-     * @param integer $h3             The 2nd interval's start hour.
-     * @param integer $m3             The 2nd interval's start minute.
-     * @param integer $h4             The 2nd interval's end hour.
-     * @param integer $m4             The 2nd interval's end minute.
-     * @param integer $expectedResult The expected result.
      */
-    public function testContains($h1, $m1, $h2, $m2, $h3, $m3, $h4, $m4, $expectedResult)
+    public function testContains(int $h1, int $m1, int $h2, int $m2, int $h3, int $m3, int $h4, int $m4, bool $expectedResult): void
     {
         $timeSpan1 = new Interval($this->createDateTime($h1 * 3600 + $m1 * 60), $this->createDateTime($h2 * 3600 + $m2 * 60));
         $timeSpan2 = new Interval($this->createDateTime($h3 * 3600 + $m3 * 60), $this->createDateTime($h4 * 3600 + $m4 * 60));
@@ -496,10 +456,7 @@ class IntervalTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($expectedResult, $timeSpan1->contains($timeSpan2));
     }
 
-    /**
-     * @return array
-     */
-    public function providerContains()
+    public function providerContains(): array
     {
         return [
             // [09:00 to 10:00) contains [09:00 to 10:00) = true
@@ -569,27 +526,16 @@ class IntervalTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerContainsInstant
-     *
-     * @param integer $h1             The interval's start hour.
-     * @param integer $m1             The interval's start minute.
-     * @param integer $h2             The interval's end hour.
-     * @param integer $m2             The interval's end minute.
-     * @param integer $h3             The hour of the test datetime.
-     * @param integer $m3             The minute of the test datetime.
-     * @param integer $expectedResult The expected result.
      */
-    public function testContainsInstant($h1, $m1, $h2, $m2, $h3, $m3, $expectedResult)
+    public function testContainsInstant(int $h1, int $m1, int $h2, int $m2, int $h3, int $m3, bool $expectedResult): void
     {
-        $timeSpan = new Interval($this->createDateTime($h1 * 3600 + $m1 * 60), $this->createDateTime($h2 * 3600 + $m2 * 60));
+        $interval = new Interval($this->createDateTime($h1 * 3600 + $m1 * 60), $this->createDateTime($h2 * 3600 + $m2 * 60));
         $instant = $this->createDateTime($h3 * 3600 + $m3 * 60);
 
-        $this->assertSame($expectedResult, $timeSpan->containsInstant($instant));
+        $this->assertSame($expectedResult, $interval->containsInstant($instant));
     }
 
-    /**
-     * @return array
-     */
-    public function providerContainsInstant()
+    public function providerContainsInstant(): array
     {
         return [
             // [09:00 to 10:00) contains 08:59 = false (before start)
@@ -614,18 +560,8 @@ class IntervalTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerOverlaps
-     *
-     * @param integer $h1             The 1st interval's start hour.
-     * @param integer $m1             The 1st interval's start minute.
-     * @param integer $h2             The 1st interval's end hour.
-     * @param integer $m2             The 1st interval's end minute.
-     * @param integer $h3             The 2nd interval's start hour.
-     * @param integer $m3             The 2nd interval's start minute.
-     * @param integer $h4             The 2nd interval's end hour.
-     * @param integer $m4             The 2nd interval's end minute.
-     * @param integer $expectedResult The expected result.
      */
-    public function testOverlaps($h1, $m1, $h2, $m2, $h3, $m3, $h4, $m4, $expectedResult)
+    public function testOverlaps(int $h1, int $m1, int $h2, int $m2, int $h3, int $m3, int $h4, int $m4, bool $expectedResult): void
     {
         $timeSpan1 = new Interval($this->createDateTime($h1 * 3600 + $m1 * 60), $this->createDateTime($h2 * 3600 + $m2 * 60));
         $timeSpan2 = new Interval($this->createDateTime($h3 * 3600 + $m3 * 60), $this->createDateTime($h4 * 3600 + $m4 * 60));
@@ -633,10 +569,7 @@ class IntervalTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($expectedResult, $timeSpan1->overlaps($timeSpan2));
     }
 
-    /**
-     * @return array
-     */
-    public function providerOverlaps()
+    public function providerOverlaps(): array
     {
         return [
             // [09:00 to 10:00) overlaps [08:00 to 08:30) = false (completely before)
@@ -762,18 +695,8 @@ class IntervalTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider providerIsEqualTo
-     *
-     * @param integer $s1             The 1st interval's start second.
-     * @param integer $n1             The 1st interval's start micro second.
-     * @param integer $s2             The 1st interval's end second.
-     * @param integer $n2             The 1st interval's end micro second.
-     * @param integer $s3             The 2st interval's start second.
-     * @param integer $n3             The 2st interval's start micro second.
-     * @param integer $s4             The 2nd interval's end second.
-     * @param integer $n4             The 2nd interval's end micro second.
-     * @param integer $expectedResult The expected result.
      */
-    public function testIsEqualTo($s1, $n1, $s2, $n2, $s3, $n3, $s4, $n4, $expectedResult)
+    public function testIsEqualTo(int $s1, int $n1, int $s2, int $n2, int $s3, int $n3, int $s4, int $n4, bool $expectedResult): void
     {
         $timeSpan1 = new Interval($this->createDateTime($s1, $n1), $this->createDateTime($s2, $n2));
         $timeSpan2 = new Interval($this->createDateTime($s3, $n3), $this->createDateTime($s4, $n4));
@@ -781,98 +704,32 @@ class IntervalTest extends \PHPUnit_Framework_TestCase
         $this->assertSame($expectedResult, $timeSpan1->isEqualTo($timeSpan2));
     }
 
-    /**
-     * @return array
-     */
-    public function providerIsEqualTo()
+    public function providerIsEqualTo(): array
     {
         return [
             [0, 0, 0, 0, 0, 0, 0, 0, true],
             [0, 0, 1, 0, 0, 0, 1, 0, true],
-            [0, 0, 1, 0, 0, 0, 1, 1, false],
+            [0, 0, 1, 0, 0, 0, 1, 1000, false],
             [0, 0, 1, 0, 1, 0, 1, 0, false],
             [1, 0, 1, 0, 0, 0, 1, 0, false],
-            [1, 1, 1, 1, 1, 1, 1, 1, true],
+            [1, 1000, 1, 1000, 1, 1000, 1, 1000, true],
         ];
     }
 
     /**
      * @dataProvider providerToString
-     *
-     * @param integer $s1             The interval's start second.
-     * @param integer $n1             The interval's start micro second.
-     * @param integer $s2             The interval's end second.
-     * @param integer $n2             The interval's end micro second.
-     * @param string  $expectedResult The expected result.
      */
-    public function testToString($s1, $n1, $s2, $n2, $expectedResult)
+    public function testToString(int $s1, int $n1, int $s2, int $n2, string $expectedResult): void
     {
-        $timeSpan = new Interval($this->createDateTime($s1, $n1), $this->createDateTime($s2, $n2));
+        $interval = new Interval($this->createDateTime($s1, $n1), $this->createDateTime($s2, $n2));
 
-        $this->assertSame($expectedResult, (string) $timeSpan);
+        $this->assertSame($expectedResult, (string) $interval);
     }
 
-    /**
-     * @return array
-     */
-    public function providerToString()
+    public function providerToString(): array
     {
         return [
             [0, 0, 1, 0, '1970-01-01T00:00:00+00:00/1970-01-01T00:00:01+00:00'],
         ];
-    }
-
-    /**
-     * @return \DateTimeInterface
-     */
-    private function createDateTime($seconds, $micros = 0)
-    {
-        return \DateTimeImmutable::createFromFormat('U.u', sprintf('%d.%06d', $seconds, $micros));
-    }
-
-    /**
-     * @param integer  $s1       The expected epoch second of the start datetime.
-     * @param integer  $n1       The expected micro second adjustment of the start datetime.
-     * @param integer  $s1       The expected epoch second of the start datetime.
-     * @param integer  $n1       The expected micro second adjustment of the start datetime.
-     * @param Interval $timeSpan The interval to test.
-     */
-    private function assertIntervalIs($s1, $n1, $s2, $n2, Interval $timeSpan)
-    {
-        $this->compare([$s1, $n1, $s2, $n2], [
-            (int) $timeSpan->getStart()->format('U'),
-            (int) $timeSpan->getStart()->format('u'),
-            (int) $timeSpan->getEnd()->format('U'),
-            (int) $timeSpan->getEnd()->format('u')
-        ]);
-    }
-
-    /**
-     * @param array $expected The expected values.
-     * @param array $actual   The actual values, count & keys matching expected values.
-     */
-    private function compare(array $expected, array $actual)
-    {
-        $message = $this->export($actual) . ' !== ' . $this->export($expected);
-
-        foreach ($expected as $key => $value) {
-            $this->assertSame($value, $actual[$key], $message);
-        }
-    }
-
-    /**
-     * Exports the given values as a string.
-     *
-     * @param array $values The values to export.
-     *
-     * @return string
-     */
-    private function export(array $values)
-    {
-        foreach ($values as & $value) {
-            $value = var_export($value, true);
-        }
-
-        return '(' . implode(', ', $values) . ')';
     }
 }
