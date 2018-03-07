@@ -15,9 +15,9 @@ class IntervalTest extends AbstractTestCase
      * @dataProvider providerConstructorThrowsInvalidArgumentException
      * @expectedException Emonkak\DateTime\DateTimeException
      */
-    public function testConstructorThrowsInvalidArgumentException(int $s1, int $n1, int $s2, int $n2): void
+    public function testConstructorThrowsInvalidArgumentException(int $seconds1, int $micros1, int $seconds2, int $micros2): void
     {
-        new Interval(new \DateTimeImmutable('1970-01-01 00:00:01'), new \DateTimeImmutable('1970-01-01 00:00:00'));
+        new Interval($this->createDateTime($seconds1, $micros1), $this->createDateTime($seconds2, $micros2));
     }
 
     public function providerConstructorThrowsInvalidArgumentException(): array
@@ -31,10 +31,10 @@ class IntervalTest extends AbstractTestCase
     /**
      * @dataProvider providerWithStart
      */
-    public function testWithStart(int $s, int $n): void
+    public function testWithStart(int $seconds, int $micros): void
     {
         $interval = new Interval($this->createDateTime(0), $this->createDateTime(100));
-        $this->assertIntervalIs($s, $n, 100, 0, $interval->withStart($this->createDateTime($s, $n)));
+        $this->assertIntervalIs($seconds, $micros, 100, 0, $interval->withStart($this->createDateTime($seconds, $micros)));
     }
 
     public function providerWithStart(): array
@@ -50,10 +50,10 @@ class IntervalTest extends AbstractTestCase
     /**
      * @dataProvider providerWithEnd
      */
-    public function testWithEnd(int $s, int $n): void
+    public function testWithEnd(int $seconds, int $micros): void
     {
         $interval = new Interval($this->createDateTime(0), $this->createDateTime(100));
-        $this->assertIntervalIs(0, 0, $s, $n, $interval->withEnd($this->createDateTime($s, $n)));
+        $this->assertIntervalIs(0, 0, $seconds, $micros, $interval->withEnd($this->createDateTime($seconds, $micros)));
     }
 
     public function providerWithEnd(): array
@@ -69,18 +69,19 @@ class IntervalTest extends AbstractTestCase
     /**
      * @dataProvider providerGetDuration
      */
-    public function testGetDuration(int $s1, int $m1, int $s2, int $m2, int $s, int $n): void
+    public function testGetDuration(int $seconds1, int $micros1, int $seconds2, int $micros2, int $expectedSeconds, int $expectedMicros): void
     {
-        $interval = new Interval($this->createDateTime($s1, $m1), $this->createDateTime($s2, $m2));
+        $interval = new Interval($this->createDateTime($seconds1, $micros1), $this->createDateTime($seconds2, $micros2));
 
-        $this->assertDurationIs($s, $n, $interval->getDuration());
+        $this->assertDurationIs($expectedSeconds, $expectedMicros, $interval->getDuration());
     }
 
     public function providerGetDuration(): array
     {
         return [
             [0, 0, 0, 0, 0, 0],
-            [1999999999, 555555000, 2000000001, 111000, 1, 444556000],
+            [0, 0, 1, 0, 1, 0],
+            [1999999, 555555, 2000001, 111, 1, 444556],
         ];
     }
 
@@ -355,10 +356,10 @@ class IntervalTest extends AbstractTestCase
     /**
      * @dataProvider providerAbuts
      */
-    public function testAbuts(int $h1, int $m1, int $h2, int $m2, int $h3, int $m3, int $h4, int $m4, bool $expectedResult): void
+    public function testAbuts(int $h1, int $micros1, int $h2, int $micros2, int $h3, int $micros3, int $h4, int $micros4, bool $expectedResult): void
     {
-        $timeSpan1 = new Interval($this->createDateTime($h1 * 3600 + $m1 * 60), $this->createDateTime($h2 * 3600 + $m2 * 60));
-        $timeSpan2 = new Interval($this->createDateTime($h3 * 3600 + $m3 * 60), $this->createDateTime($h4 * 3600 + $m4 * 60));
+        $timeSpan1 = new Interval($this->createDateTime($h1 * 3600 + $micros1 * 60), $this->createDateTime($h2 * 3600 + $micros2 * 60));
+        $timeSpan2 = new Interval($this->createDateTime($h3 * 3600 + $micros3 * 60), $this->createDateTime($h4 * 3600 + $micros4 * 60));
 
         $this->assertSame($expectedResult, $timeSpan1->abuts($timeSpan2));
     }
@@ -448,10 +449,10 @@ class IntervalTest extends AbstractTestCase
     /**
      * @dataProvider providerContains
      */
-    public function testContains(int $h1, int $m1, int $h2, int $m2, int $h3, int $m3, int $h4, int $m4, bool $expectedResult): void
+    public function testContains(int $h1, int $micros1, int $h2, int $micros2, int $h3, int $micros3, int $h4, int $micros4, bool $expectedResult): void
     {
-        $timeSpan1 = new Interval($this->createDateTime($h1 * 3600 + $m1 * 60), $this->createDateTime($h2 * 3600 + $m2 * 60));
-        $timeSpan2 = new Interval($this->createDateTime($h3 * 3600 + $m3 * 60), $this->createDateTime($h4 * 3600 + $m4 * 60));
+        $timeSpan1 = new Interval($this->createDateTime($h1 * 3600 + $micros1 * 60), $this->createDateTime($h2 * 3600 + $micros2 * 60));
+        $timeSpan2 = new Interval($this->createDateTime($h3 * 3600 + $micros3 * 60), $this->createDateTime($h4 * 3600 + $micros4 * 60));
 
         $this->assertSame($expectedResult, $timeSpan1->contains($timeSpan2));
     }
@@ -527,10 +528,10 @@ class IntervalTest extends AbstractTestCase
     /**
      * @dataProvider providerContainsInstant
      */
-    public function testContainsInstant(int $h1, int $m1, int $h2, int $m2, int $h3, int $m3, bool $expectedResult): void
+    public function testContainsInstant(int $h1, int $micros1, int $h2, int $micros2, int $h3, int $micros3, bool $expectedResult): void
     {
-        $interval = new Interval($this->createDateTime($h1 * 3600 + $m1 * 60), $this->createDateTime($h2 * 3600 + $m2 * 60));
-        $instant = $this->createDateTime($h3 * 3600 + $m3 * 60);
+        $interval = new Interval($this->createDateTime($h1 * 3600 + $micros1 * 60), $this->createDateTime($h2 * 3600 + $micros2 * 60));
+        $instant = $this->createDateTime($h3 * 3600 + $micros3 * 60);
 
         $this->assertSame($expectedResult, $interval->containsInstant($instant));
     }
@@ -561,10 +562,10 @@ class IntervalTest extends AbstractTestCase
     /**
      * @dataProvider providerOverlaps
      */
-    public function testOverlaps(int $h1, int $m1, int $h2, int $m2, int $h3, int $m3, int $h4, int $m4, bool $expectedResult): void
+    public function testOverlaps(int $h1, int $micros1, int $h2, int $micros2, int $h3, int $micros3, int $h4, int $micros4, bool $expectedResult): void
     {
-        $timeSpan1 = new Interval($this->createDateTime($h1 * 3600 + $m1 * 60), $this->createDateTime($h2 * 3600 + $m2 * 60));
-        $timeSpan2 = new Interval($this->createDateTime($h3 * 3600 + $m3 * 60), $this->createDateTime($h4 * 3600 + $m4 * 60));
+        $timeSpan1 = new Interval($this->createDateTime($h1 * 3600 + $micros1 * 60), $this->createDateTime($h2 * 3600 + $micros2 * 60));
+        $timeSpan2 = new Interval($this->createDateTime($h3 * 3600 + $micros3 * 60), $this->createDateTime($h4 * 3600 + $micros4 * 60));
 
         $this->assertSame($expectedResult, $timeSpan1->overlaps($timeSpan2));
     }
@@ -696,10 +697,10 @@ class IntervalTest extends AbstractTestCase
     /**
      * @dataProvider providerIsEqualTo
      */
-    public function testIsEqualTo(int $s1, int $n1, int $s2, int $n2, int $s3, int $n3, int $s4, int $n4, bool $expectedResult): void
+    public function testIsEqualTo(int $seconds1, int $micros1, int $seconds2, int $micros2, int $seconds3, int $micros3, int $seconds4, int $micros4, bool $expectedResult): void
     {
-        $timeSpan1 = new Interval($this->createDateTime($s1, $n1), $this->createDateTime($s2, $n2));
-        $timeSpan2 = new Interval($this->createDateTime($s3, $n3), $this->createDateTime($s4, $n4));
+        $timeSpan1 = new Interval($this->createDateTime($seconds1, $micros1), $this->createDateTime($seconds2, $micros2));
+        $timeSpan2 = new Interval($this->createDateTime($seconds3, $micros3), $this->createDateTime($seconds4, $micros4));
 
         $this->assertSame($expectedResult, $timeSpan1->isEqualTo($timeSpan2));
     }
@@ -719,9 +720,9 @@ class IntervalTest extends AbstractTestCase
     /**
      * @dataProvider providerToString
      */
-    public function testToString(int $s1, int $n1, int $s2, int $n2, string $expectedResult): void
+    public function testToString(int $seconds1, int $micros1, int $seconds2, int $micros2, string $expectedResult): void
     {
-        $interval = new Interval($this->createDateTime($s1, $n1), $this->createDateTime($s2, $n2));
+        $interval = new Interval($this->createDateTime($seconds1, $micros1), $this->createDateTime($seconds2, $micros2));
 
         $this->assertSame($expectedResult, (string) $interval);
     }

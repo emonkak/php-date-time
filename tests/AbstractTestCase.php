@@ -10,26 +10,26 @@ use PHPUnit\Framework\TestCase;
 
 class AbstractTestCase extends TestCase
 {
-    protected function createDateTime($seconds, $nanos = 0): \DateTimeImmutable
+    protected function createDateTime($seconds, $micros = 0): \DateTimeImmutable
     {
-        return \DateTimeImmutable::createFromFormat('U.u', sprintf('%d.%06d', $seconds, intdiv($nanos, 1000)));
+        return \DateTimeImmutable::createFromFormat('U.u', sprintf('%d.%06d', $seconds, $micros));
     }
 
     protected function assertDurationIs(int $s, int $n, Duration $duration): void
     {
         $this->compare([$s, $n], [
             (int) $duration->getSeconds(),
-            (int) $duration->getNanos()
+            (int) $duration->getMicros()
         ]);
     }
 
-    protected function assertIntervalIs(int $s1, int $n1, int $s2, int $n2, Interval $interval): void
+    protected function assertIntervalIs(int $seconds1, int $micros1, int $seconds2, int $micros2, Interval $interval): void
     {
-        $this->compare([$s1, $n1, $s2, $n2], [
+        $this->compare([$seconds1, $micros1, $seconds2, $micros2], [
             (int) $interval->getStart()->format('U'),
-            (int) $interval->getStart()->format('u') * 1000,
+            (int) $interval->getStart()->format('u'),
             (int) $interval->getEnd()->format('U'),
-            (int) $interval->getEnd()->format('u') * 1000
+            (int) $interval->getEnd()->format('u')
         ]);
     }
 
