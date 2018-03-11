@@ -4,21 +4,19 @@ declare(strict_types=1);
 
 namespace Emonkak\DateTime\Clock;
 
-use Emonkak\DateTime\DateTime;
-
 class FixedClock implements ClockInterface
 {
     /**
-     * @var DateTime
+     * @var \DateTimeInterface
      */
     private $dateTime;
 
-    public function __construct(DateTime $dateTime)
+    public function __construct(\DateTimeInterface $dateTime)
     {
         $this->dateTime = $dateTime;
     }
 
-    public function getDateTime(): DateTime
+    public function getDateTime(): \DateTimeInterface
     {
         return $this->dateTime;
     }

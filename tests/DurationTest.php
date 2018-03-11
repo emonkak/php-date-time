@@ -6,7 +6,11 @@ namespace Emonkak\DateTime\Tests;
 
 use Emonkak\DateTime\Duration;
 use Emonkak\DateTime\Unit;
+use Emonkak\DateTime\UnitInterface;
 
+/**
+ * @covers Emonkak\DateTime\Duration
+ */
 class DurationTest extends AbstractTestCase
 {
     public function testZero(): void
@@ -81,30 +85,33 @@ class DurationTest extends AbstractTestCase
     /**
      * @dataProvider providerBetween
      */
-    public function testBetween(int $seconds1, int $micros1, int $seconds2, int $micros2, int $seconds, int $micros): void
+    public function testBetween(string $dateTimeString1, string $dateTimeString2, int $expectedSeconds, int $expectedMicros): void
     {
-        $d1 = $this->createDateTime($seconds1, $micros1);
-        $d2 = $this->createDateTime($seconds2, $micros2);
-
-        $this->assertDurationIs($seconds, $micros, Duration::between($d1, $d2));
+        $dateTime1 = new \DateTimeImmutable($dateTimeString1);
+        $dateTime2 = new \DateTimeImmutable($dateTimeString2);
+        $this->assertDurationIs($expectedSeconds, $expectedMicros, Duration::between($dateTime1, $dateTime2));
     }
 
     public function providerBetween(): array
     {
         return [
-            [0, 0, 0, 0, 0, 0],
-            [3, 0, 7, 0, 4, 0],
-            [7, 0, 3, 0, -4, 0],
+            ['2013-03-24T00:44:31.565000Z', '2013-03-24T00:44:30.065000Z', -2, 500000],
+            ['2013-03-24T00:44:31.565000Z', '2013-03-24T00:44:31.065000Z', -1, 500000],
+            ['2013-03-24T00:44:31.565000Z', '2013-03-24T00:44:32.065000Z', 0, 500000],
+            ['2013-03-24T00:44:31.565000Z', '2013-03-24T00:44:33.065000Z', 1, 500000],
+            ['2013-03-24T00:44:31.565000Z', '2013-03-24T00:44:34.065000Z', 2, 500000],
 
-            [0, 500000, 1, 500000, 1, 0],
-            [0, 500000, 1, 750000, 1, 250000],
-            [0, 500000, 1, 250000, 0, 750000],
+            ['2013-03-24T00:44:31.065000Z', '2013-03-24T00:44:30.565000Z', -1, 500000],
+            ['2013-03-24T00:44:31.065000Z', '2013-03-24T00:44:31.565000Z', 0, 500000],
+            ['2013-03-24T00:44:31.065000Z', '2013-03-24T00:44:32.565000Z', 1, 500000],
+            ['2013-03-24T00:44:31.065000Z', '2013-03-24T00:44:33.565000Z', 2, 500000],
+            ['2013-03-24T00:44:31.065000Z', '2013-03-24T00:44:34.565000Z', 3, 500000],
 
-            [-1, 500000, 0, 0, 0, 500000],
-            [-1, 500000, 0, 500000, 1, 0],
-
-            [0, 0, -1, 500000, -1, 500000],
-            [0, 500000, -1, 500000, -1, 0],
+            ['2013-03-24T00:44:31.065000Z', '2013-03-24T00:44:30.065000Z', -1, 0],
+            ['2013-03-24T00:44:31.065000Z', '2013-03-24T00:44:31.065000Z', 0, 0],
+            ['2013-03-24T00:44:31.065000Z', '2013-03-24T00:44:32.065000Z', 1, 0],
+            ['2013-03-24T00:44:31.065000Z', '2013-03-24T00:44:33.065000Z', 2, 0],
+            ['2013-03-24T00:44:31.065000Z', '2013-03-24T00:44:34.065000Z', 3, 0],
         ];
     }
 
@@ -910,19 +917,26 @@ class DurationTest extends AbstractTestCase
 
     /**
      * @expectedException Emonkak\DateTime\DateTimeException
-     * @dataProvider providerTruncatedThrowsException
+     * @dataProvider providerTruncatedToThrowsException
      */
-    public function testTruncatedThrowsException(string $unitValue): void
+    public function testTruncatedToThrowsException(int $seconds, int $micros): void
     {
-        Duration::zero()->truncatedTo(Unit::of($unitValue));
+        $unit = $this->createMock(UnitInterface::class);
+        $unit
+            ->expects($this->once())
+            ->method('getDuration')
+            ->willReturn(Duration::ofSeconds($seconds, $micros));
+
+        Duration::zero()->truncatedTo($unit);
     }
 
-    public function providerTruncatedThrowsException(): array
+    public function providerTruncatedToThrowsException(): array
     {
         return [
-            [Unit::MONTH],
-            [Unit::YEAR],
-            [Unit::FOREVER],
+            [0, 0],
+            [7, 0],
+            [0, 7],
+            [(24 * 60 * 60) + 1, 0]
         ];
     }
 

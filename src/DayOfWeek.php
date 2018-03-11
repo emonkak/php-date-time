@@ -48,8 +48,7 @@ final class DayOfWeek
         do {
             $days[] = $current;
             $current = $current->plus(1);
-        }
-        while (!$current->isEqualTo($first));
+        } while (!$current->isEqualTo($first));
 
         return $days;
     }

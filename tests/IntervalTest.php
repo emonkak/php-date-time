@@ -15,9 +15,9 @@ class IntervalTest extends AbstractTestCase
      * @dataProvider providerConstructorThrowsInvalidArgumentException
      * @expectedException Emonkak\DateTime\DateTimeException
      */
-    public function testConstructorThrowsInvalidArgumentException(int $seconds1, int $micros1, int $seconds2, int $micros2): void
+    public function testConstructorThrowsInvalidArgumentException(int $second1, int $micro1, int $second2, int $micro2): void
     {
-        new Interval($this->createDateTime($seconds1, $micros1), $this->createDateTime($seconds2, $micros2));
+        $this->createInterval($second1, $micro1, $second2, $micro2);
     }
 
     public function providerConstructorThrowsInvalidArgumentException(): array
@@ -33,7 +33,7 @@ class IntervalTest extends AbstractTestCase
      */
     public function testWithStart(int $seconds, int $micros): void
     {
-        $interval = new Interval($this->createDateTime(0), $this->createDateTime(100));
+        $interval = $this->createInterval(0, 0, 100, 0);
         $this->assertIntervalIs($seconds, $micros, 100, 0, $interval->withStart($this->createDateTime($seconds, $micros)));
     }
 
@@ -52,7 +52,7 @@ class IntervalTest extends AbstractTestCase
      */
     public function testWithEnd(int $seconds, int $micros): void
     {
-        $interval = new Interval($this->createDateTime(0), $this->createDateTime(100));
+        $interval = $this->createInterval(0, 0, 100, 0);
         $this->assertIntervalIs(0, 0, $seconds, $micros, $interval->withEnd($this->createDateTime($seconds, $micros)));
     }
 
@@ -69,9 +69,9 @@ class IntervalTest extends AbstractTestCase
     /**
      * @dataProvider providerGetDuration
      */
-    public function testGetDuration(int $seconds1, int $micros1, int $seconds2, int $micros2, int $expectedSeconds, int $expectedMicros): void
+    public function testGetDuration(int $second1, int $micro1, int $second2, int $micro2, int $expectedSeconds, int $expectedMicros): void
     {
-        $interval = new Interval($this->createDateTime($seconds1, $micros1), $this->createDateTime($seconds2, $micros2));
+        $interval = $this->createInterval($second1, $micro1, $second2, $micro2);
 
         $this->assertDurationIs($expectedSeconds, $expectedMicros, $interval->getDuration());
     }
@@ -88,280 +88,280 @@ class IntervalTest extends AbstractTestCase
     /**
      * @dataProvider providerGap
      */
-    public function testGap(array $first, array $second, array $expected): void
+    public function testGap(int $s1, int $s2, int $s3, int $s4, int $es1, int $es2): void
     {
-        $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
-        $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
+        $interval1 = $this->createInterval($s1, 0, $s2, 0);
+        $interval2 = $this->createInterval($s3, 0, $s4, 0);
 
-        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $firstInterval->gap($secondInterval));
-        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $secondInterval->gap($firstInterval));
+        $this->assertIntervalIs($es1, 0, $es2, 0, $interval1->gap($interval2));
+        $this->assertIntervalIs($es1, 0, $es2, 0, $interval2->gap($interval1));
     }
 
     public function providerGap(): array
     {
         return [
-            [[3, 7], [0, 1], [1, 3]],
-            [[3, 7], [1, 1], [1, 3]],
-            [[3, 7], [8, 8], [7, 8]],
-            [[3, 7], [8, 9], [7, 8]],
-            [[3, 7], [9, 9], [7, 9]]
+            [3, 7, 0, 1, 1, 3],
+            [3, 7, 1, 1, 1, 3],
+            [3, 7, 8, 8, 7, 8],
+            [3, 7, 8, 9, 7, 8],
+            [3, 7, 9, 9, 7, 9]
         ];
     }
 
     /**
      * @dataProvider providerGapReturnsNull
      */
-    public function testGapReturnsNull(array $first, array $second): void
+    public function testGapReturnsNull(int $s1, int $s2, int $s3, int $s4): void
     {
-        $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
-        $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
+        $interval1 = $this->createInterval($s1, 0, $s2, 0);
+        $interval2 = $this->createInterval($s3, 0, $s4, 0);
 
-        $this->assertNull($firstInterval->gap($secondInterval));
-        $this->assertNull($secondInterval->gap($firstInterval));
+        $this->assertNull($interval1->gap($interval2));
+        $this->assertNull($interval2->gap($interval1));
     }
 
     public function providerGapReturnsNull(): array
     {
         return [
-            [[3, 7], [2, 3]],  // abuts before
-            [[3, 7], [3, 3]],  // abuts before
-            [[3, 7], [4, 6]],  // overlaps
-            [[3, 7], [3, 7]],  // overlaps
-            [[3, 7], [6, 7]],  // overlaps
-            [[3, 7], [7, 7]],  // abuts before
-            [[3, 7], [6, 8]],  // overlaps
-            [[3, 7], [7, 8]],  // abuts after
-            [[3, 7], [6, 9]],  // overlaps
-            [[3, 7], [7, 9]],  // abuts after
+            [3, 7, 2, 3],  // abuts before
+            [3, 7, 3, 3],  // abuts before
+            [3, 7, 4, 6],  // overlaps
+            [3, 7, 3, 7],  // overlaps
+            [3, 7, 6, 7],  // overlaps
+            [3, 7, 7, 7],  // abuts before
+            [3, 7, 6, 8],  // overlaps
+            [3, 7, 7, 8],  // abuts after
+            [3, 7, 6, 9],  // overlaps
+            [3, 7, 7, 9],  // abuts after
         ];
     }
 
     /**
      * @dataProvider providerOverlap
      */
-    public function testOverlap(array $first, array $second, array $expected): void
+    public function testOverlap(int $s1, int $s2, int $s3, int $s4, int $es1, int $es2): void
     {
-        $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
-        $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
+        $interval1 = $this->createInterval($s1, 0, $s2, 0);
+        $interval2 = $this->createInterval($s3, 0, $s4, 0);
 
-        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $firstInterval->overlap($secondInterval));
-        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $secondInterval->overlap($firstInterval));
+        $this->assertIntervalIs($es1, 0, $es2, 0, $interval1->overlap($interval2));
+        $this->assertIntervalIs($es1, 0, $es2, 0, $interval2->overlap($interval1));
     }
 
     public function providerOverlap(): array
     {
         return [
-            [[3, 7], [2, 4], [3, 4]],  // truncated start
-            [[3, 7], [3, 4], [3, 4]],
-            [[3, 7], [4, 4], [4, 4]],
+            [3, 7, 2, 4, 3, 4],  // truncated start
+            [3, 7, 3, 4, 3, 4],
+            [3, 7, 4, 4, 4, 4],
 
-            [[3, 7], [2, 7], [3, 7]],  // truncated start
-            [[3, 7], [3, 7], [3, 7]],
-            [[3, 7], [4, 7], [4, 7]],
-            [[3, 7], [5, 7], [5, 7]],
-            [[3, 7], [6, 7], [6, 7]],
+            [3, 7, 2, 7, 3, 7],  // truncated start
+            [3, 7, 3, 7, 3, 7],
+            [3, 7, 4, 7, 4, 7],
+            [3, 7, 5, 7, 5, 7],
+            [3, 7, 6, 7, 6, 7],
 
-            [[3, 7], [2, 8], [3, 7]],  // truncated start and end
-            [[3, 7], [3, 8], [3, 7]],  // truncated end
-            [[3, 7], [4, 8], [4, 7]],  // truncated end
-            [[3, 7], [5, 8], [5, 7]],  // truncated end
-            [[3, 7], [6, 8], [6, 7]],  // truncated end
+            [3, 7, 2, 8, 3, 7],  // truncated start and end
+            [3, 7, 3, 8, 3, 7],  // truncated end
+            [3, 7, 4, 8, 4, 7],  // truncated end
+            [3, 7, 5, 8, 5, 7],  // truncated end
+            [3, 7, 6, 8, 6, 7],  // truncated end
         ];
     }
 
     /**
      * @dataProvider providerOverlapReturnsNull
      */
-    public function testOverlapReturnsNull(array $first, array $second): void
+    public function testOverlapReturnsNull(int $s1, int $s2, int $s3, int $s4): void
     {
-        $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
-        $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
+        $interval1 = $this->createInterval($s1, 0, $s2, 0);
+        $interval2 = $this->createInterval($s3, 0, $s4, 0);
 
-        $this->assertNull($firstInterval->overlap($secondInterval));
-        $this->assertNull($secondInterval->overlap($firstInterval));
+        $this->assertNull($interval1->overlap($interval2));
+        $this->assertNull($interval2->overlap($interval1));
     }
 
     public function providerOverlapReturnsNull(): array
     {
         return [
-            [[3, 7], [1, 2]],  // gap before
-            [[3, 7], [2, 2]],  // gap before
-            [[3, 7], [2, 3]],  // abuts before
-            [[3, 7], [3, 3]],  // abuts before
-            [[3, 7], [7, 7]],  // abuts after
-            [[3, 7], [7, 8]],  // abuts after
-            [[3, 7], [8, 8]],  // gap after
+            [3, 7, 1, 2],  // gap before
+            [3, 7, 2, 2],  // gap before
+            [3, 7, 2, 3],  // abuts before
+            [3, 7, 3, 3],  // abuts before
+            [3, 7, 7, 7],  // abuts after
+            [3, 7, 7, 8],  // abuts after
+            [3, 7, 8, 8],  // gap after
         ];
     }
 
     /**
      * @dataProvider providerCover
      */
-    public function testCover(array $first, array $second, array $expected): void
+    public function testCover(int $s1, int $s2, int $s3, int $s4, int $es1, int $es2): void
     {
-        $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
-        $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
+        $interval1 = $this->createInterval($s1, 0, $s2, 0);
+        $interval2 = $this->createInterval($s3, 0, $s4, 0);
 
-        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $firstInterval->cover($secondInterval));
-        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $secondInterval->cover($firstInterval));
+        $this->assertIntervalIs($es1, 0, $es2, 0, $interval1->cover($interval2));
+        $this->assertIntervalIs($es1, 0, $es2, 0, $interval2->cover($interval1));
     }
 
     public function providerCover(): array
     {
         return [
-            [[3, 7], [1, 2], [1, 7]],  // gap before
-            [[3, 7], [2, 2], [2, 7]],  // gap before
+            [3, 7, 1, 2, 1, 7],  // gap before
+            [3, 7, 2, 2, 2, 7],  // gap before
 
-            [[3, 7], [2, 3], [2, 7]],  // abuts before
-            [[3, 7], [3, 3], [3, 7]],  // abuts before
+            [3, 7, 2, 3, 2, 7],  // abuts before
+            [3, 7, 3, 3, 3, 7],  // abuts before
 
-            [[3, 7], [2, 4], [2, 7]],  // truncated start
-            [[3, 7], [3, 4], [3, 7]],
-            [[3, 7], [4, 4], [3, 7]],
+            [3, 7, 2, 4, 2, 7],  // truncated start
+            [3, 7, 3, 4, 3, 7],
+            [3, 7, 4, 4, 3, 7],
 
-            [[3, 7], [2, 7], [2, 7]],  // truncated start
-            [[3, 7], [3, 7], [3, 7]],
-            [[3, 7], [4, 7], [3, 7]],
-            [[3, 7], [5, 7], [3, 7]],
-            [[3, 7], [6, 7], [3, 7]],
-            [[3, 7], [7, 7], [3, 7]],  // abuts after
+            [3, 7, 2, 7, 2, 7],  // truncated start
+            [3, 7, 3, 7, 3, 7],
+            [3, 7, 4, 7, 3, 7],
+            [3, 7, 5, 7, 3, 7],
+            [3, 7, 6, 7, 3, 7],
+            [3, 7, 7, 7, 3, 7],  // abuts after
 
-            [[3, 7], [2, 8], [2, 8]],  // truncated start and end
-            [[3, 7], [3, 8], [3, 8]],  // truncated end
-            [[3, 7], [4, 8], [3, 8]],  // truncated end
-            [[3, 7], [5, 8], [3, 8]],  // truncated end
-            [[3, 7], [6, 8], [3, 8]],  // truncated end
-            [[3, 7], [7, 8], [3, 8]],  // abuts after
-            [[3, 7], [8, 8], [3, 8]]   // gap after
+            [3, 7, 2, 8, 2, 8],  // truncated start and end
+            [3, 7, 3, 8, 3, 8],  // truncated end
+            [3, 7, 4, 8, 3, 8],  // truncated end
+            [3, 7, 5, 8, 3, 8],  // truncated end
+            [3, 7, 6, 8, 3, 8],  // truncated end
+            [3, 7, 7, 8, 3, 8],  // abuts after
+            [3, 7, 8, 8, 3, 8]   // gap after
         ];
     }
 
     /**
      * @dataProvider providerUnion
      */
-    public function testUnion(array $first, array $second, array $expected): void
+    public function testUnion(int $s1, int $s2, int $s3, int $s4, int $es1, int $es2): void
     {
-        $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
-        $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
+        $interval1 = $this->createInterval($s1, 0, $s2, 0);
+        $interval2 = $this->createInterval($s3, 0, $s4, 0);
 
-        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $firstInterval->union($secondInterval));
-        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $secondInterval->union($firstInterval));
+        $this->assertIntervalIs($es1, 0, $es2, 0, $interval1->union($interval2));
+        $this->assertIntervalIs($es1, 0, $es2, 0, $interval2->union($interval1));
     }
 
     public function providerUnion(): array
     {
         return [
-            [[3, 7], [2, 4], [2, 7]],  // truncated start
-            [[3, 7], [3, 4], [3, 7]],
-            [[3, 7], [4, 4], [3, 7]],
+            [3, 7, 2, 4, 2, 7],  // truncated start
+            [3, 7, 3, 4, 3, 7],
+            [3, 7, 4, 4, 3, 7],
 
-            [[3, 7], [2, 7], [2, 7]],  // truncated start
-            [[3, 7], [3, 7], [3, 7]],
-            [[3, 7], [4, 7], [3, 7]],
-            [[3, 7], [5, 7], [3, 7]],
-            [[3, 7], [6, 7], [3, 7]],
+            [3, 7, 2, 7, 2, 7],  // truncated start
+            [3, 7, 3, 7, 3, 7],
+            [3, 7, 4, 7, 3, 7],
+            [3, 7, 5, 7, 3, 7],
+            [3, 7, 6, 7, 3, 7],
 
-            [[3, 7], [2, 8], [2, 8]],  // truncated start and end
-            [[3, 7], [3, 8], [3, 8]],  // truncated end
-            [[3, 7], [4, 8], [3, 8]],  // truncated end
-            [[3, 7], [5, 8], [3, 8]],  // truncated end
-            [[3, 7], [6, 8], [3, 8]],  // truncated end
+            [3, 7, 2, 8, 2, 8],  // truncated start and end
+            [3, 7, 3, 8, 3, 8],  // truncated end
+            [3, 7, 4, 8, 3, 8],  // truncated end
+            [3, 7, 5, 8, 3, 8],  // truncated end
+            [3, 7, 6, 8, 3, 8],  // truncated end
         ];
     }
 
     /**
      * @dataProvider providerUnionReturnsNull
      */
-    public function testUnionReturnsNull(array $first, array $second): void
+    public function testUnionReturnsNull(int $s1, int $s2, int $s3, int $s4): void
     {
-        $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
-        $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
+        $interval1 = $this->createInterval($s1, 0, $s2, 0);
+        $interval2 = $this->createInterval($s3, 0, $s4, 0);
 
-        $this->assertNull($firstInterval->union($secondInterval));
-        $this->assertNull($secondInterval->union($firstInterval));
+        $this->assertNull($interval1->union($interval2));
+        $this->assertNull($interval2->union($interval1));
     }
 
     public function providerUnionReturnsNull(): array
     {
         return [
-            [[3, 7], [1, 2]],  // gap before
-            [[3, 7], [2, 2]],  // gap before
-            [[3, 7], [2, 3]],  // abuts before
-            [[3, 7], [3, 3]],  // abuts before
-            [[3, 7], [7, 7]],  // abuts after
-            [[3, 7], [7, 8]],  // abuts after
-            [[3, 7], [8, 8]]   // gap after
+            [3, 7, 1, 2],  // gap before
+            [3, 7, 2, 2],  // gap before
+            [3, 7, 2, 3],  // abuts before
+            [3, 7, 3, 3],  // abuts before
+            [3, 7, 7, 7],  // abuts after
+            [3, 7, 7, 8],  // abuts after
+            [3, 7, 8, 8]   // gap after
         ];
     }
 
     /**
      * @dataProvider providerJoin
      */
-    public function testJoin(array $first, array $second, array $expected): void
+    public function testJoin(int $s1, int $s2, int $s3, int $s4, int $es1, int $es2): void
     {
-        $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
-        $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
+        $interval1 = $this->createInterval($s1, 0, $s2, 0);
+        $interval2 = $this->createInterval($s3, 0, $s4, 0);
 
-        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $firstInterval->join($secondInterval));
-        $this->assertIntervalIs($expected[0], 0, $expected[1], 0, $secondInterval->join($firstInterval));
+        $this->assertIntervalIs($es1, 0, $es2, 0, $interval1->join($interval2));
+        $this->assertIntervalIs($es1, 0, $es2, 0, $interval2->join($interval1));
     }
 
     public function providerJoin(): array
     {
         return [
-            [[3, 7], [2, 3], [2, 7]],  // abuts before
-            [[3, 7], [3, 3], [3, 7]],  // abuts before
-            [[3, 7], [7, 7], [3, 7]],  // abuts after
-            [[3, 7], [7, 8], [3, 8]],  // abuts after
+            [3, 7, 2, 3, 2, 7],  // abuts before
+            [3, 7, 3, 3, 3, 7],  // abuts before
+            [3, 7, 7, 7, 3, 7],  // abuts after
+            [3, 7, 7, 8, 3, 8],  // abuts after
         ];
     }
 
     /**
      * @dataProvider providerJoinReturnsNull
      */
-    public function testJoinReturnsNull(array $first, array $second): void
+    public function testJoinReturnsNull(int $s1, int $s2, int $s3, int $s4): void
     {
-        $firstInterval = new Interval($this->createDateTime($first[0]), $this->createDateTime($first[1]));
-        $secondInterval = new Interval($this->createDateTime($second[0]), $this->createDateTime($second[1]));
+        $interval1 = $this->createInterval($s1, 0, $s2, 0);
+        $interval2 = $this->createInterval($s3, 0, $s4, 0);
 
-        $this->assertNull($firstInterval->join($secondInterval));
-        $this->assertNull($secondInterval->join($firstInterval));
+        $this->assertNull($interval1->join($interval2));
+        $this->assertNull($interval2->join($interval1));
     }
 
     public function providerJoinReturnsNull(): array
     {
         return [
-            [[3, 7], [1, 2]],  // gap before
-            [[3, 7], [2, 2]],  // gap before
+            [3, 7, 1, 2],  // gap before
+            [3, 7, 2, 2],  // gap before
 
-            [[3, 7], [2, 4]],  // truncated start
-            [[3, 7], [3, 4]],
-            [[3, 7], [4, 4]],
+            [3, 7, 2, 4],  // truncated start
+            [3, 7, 3, 4],
+            [3, 7, 4, 4],
 
-            [[3, 7], [2, 7]],  // truncated start
-            [[3, 7], [3, 7]],
-            [[3, 7], [4, 7]],
-            [[3, 7], [5, 7]],
-            [[3, 7], [6, 7]],
+            [3, 7, 2, 7],  // truncated start
+            [3, 7, 3, 7],
+            [3, 7, 4, 7],
+            [3, 7, 5, 7],
+            [3, 7, 6, 7],
 
-            [[3, 7], [2, 8]],  // truncated start and end
-            [[3, 7], [3, 8]],  // truncated end
-            [[3, 7], [4, 8]],  // truncated end
-            [[3, 7], [5, 8]],  // truncated end
-            [[3, 7], [6, 8]],  // truncated end
-            [[3, 7], [8, 8]]   // gap after
+            [3, 7, 2, 8],  // truncated start and end
+            [3, 7, 3, 8],  // truncated end
+            [3, 7, 4, 8],  // truncated end
+            [3, 7, 5, 8],  // truncated end
+            [3, 7, 6, 8],  // truncated end
+            [3, 7, 8, 8]   // gap after
         ];
     }
 
     /**
      * @dataProvider providerAbuts
      */
-    public function testAbuts(int $h1, int $micros1, int $h2, int $micros2, int $h3, int $micros3, int $h4, int $micros4, bool $expectedResult): void
+    public function testAbuts(int $s1, int $s2, int $s3, int $s4, bool $expectedResult): void
     {
-        $timeSpan1 = new Interval($this->createDateTime($h1 * 3600 + $micros1 * 60), $this->createDateTime($h2 * 3600 + $micros2 * 60));
-        $timeSpan2 = new Interval($this->createDateTime($h3 * 3600 + $micros3 * 60), $this->createDateTime($h4 * 3600 + $micros4 * 60));
+        $interval1 = $this->createInterval($s1, 0, $s2, 0);
+        $interval2 = $this->createInterval($s3, 0, $s4, 0);
 
-        $this->assertSame($expectedResult, $timeSpan1->abuts($timeSpan2));
+        $this->assertSame($expectedResult, $interval1->abuts($interval2));
     }
 
     public function providerAbuts(): array
@@ -369,78 +369,100 @@ class IntervalTest extends AbstractTestCase
         return [
             // [09:00 to 10:00) abuts [08:00 to 08:30) = false (completely before)
             [
-                9, 0, 10,  0,
-                8, 0,  8, 30,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                8 * 3600 + 0 * 60,
+                8 * 3600 + 30 * 60,
                 false
             ],
 
             // [09:00 to 10:00) abuts [08:00 to 09:00) = true
             [
-                9, 0, 10, 0,
-                8, 0,  9, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                8 * 3600 + 0 * 60,
+                9 * 3600 + 0 * 60,
                 true
             ],
 
             // [09:00 to 10:00) abuts [08:00 to 09:01) = false (overlaps)
             [
-                9, 0, 10, 0,
-                8, 0,  9, 1,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                8 * 3600 + 0 * 60,
+                9 * 3600 + 1 * 60,
                 false
             ],
 
             // [09:00 to 10:00) abuts [09:00 to 09:00) = true
             [
-                9, 0, 10, 0,
-                9, 0,  9, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                9 * 3600 + 0 * 60,
+                9 * 3600 + 0 * 60,
                 true
             ],
 
             // [09:00 to 10:00) abuts [09:00 to 09:01) = false (overlaps)
             [
-                9, 0, 10, 0,
-                9, 0,  9, 1,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                9 * 3600 + 0 * 60,
+                9 * 3600 + 1 * 60,
                 false
             ],
 
             // [09:00 to 10:00) abuts [10:00 to 10:00) = true
             [
-                 9, 0, 10, 0,
-                10, 0, 10, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
                 true
             ],
 
             // [09:00 to 10:00) abuts [10:00 to 10:30) = true
             [
-                 9, 0, 10,  0,
-                10, 0, 10, 30,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                10 * 3600 + 30 * 60,
                 true
             ],
 
             // [09:00 to 10:00) abuts [10:30 to 11:00) = false (completely after)
             [
-                 9,  0, 10, 0,
-                10, 30, 11, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                10 * 3600 + 30 * 60,
+                11 * 3600 + 0 * 60,
                 false
             ],
 
             // [14:00 to 14:00) abuts [14:00 to 14:00) = true
             [
-                14, 0, 14, 0,
-                14, 0, 14, 0,
+                14 * 3600 + 0 * 60,
+                14 * 3600 + 0 * 60,
+                14 * 3600 + 0 * 60,
+                14 * 3600 + 0 * 60,
                 true
             ],
 
             // [14:00 to 14:00) abuts [14:00 to 15:00) = true
             [
-                14, 0, 14, 0,
-                14, 0, 15, 0,
+                14 * 3600 + 0 * 60,
+                14 * 3600 + 0 * 60,
+                14 * 3600 + 0 * 60,
+                15 * 3600 + 0 * 60,
                 true
             ],
 
             // [14:00 to 14:00) abuts [13:00 to 14:00) = true
             [
-                14, 0, 14, 0,
-                13, 0, 14, 0,
+                14 * 3600 + 0 * 60,
+                14 * 3600 + 0 * 60,
+                13 * 3600 + 0 * 60,
+                14 * 3600 + 0 * 60,
                 true
             ]
         ];
@@ -449,12 +471,12 @@ class IntervalTest extends AbstractTestCase
     /**
      * @dataProvider providerContains
      */
-    public function testContains(int $h1, int $micros1, int $h2, int $micros2, int $h3, int $micros3, int $h4, int $micros4, bool $expectedResult): void
+    public function testContains(int $s1, int $s2, int $s3, int $s4, bool $expectedResult): void
     {
-        $timeSpan1 = new Interval($this->createDateTime($h1 * 3600 + $micros1 * 60), $this->createDateTime($h2 * 3600 + $micros2 * 60));
-        $timeSpan2 = new Interval($this->createDateTime($h3 * 3600 + $micros3 * 60), $this->createDateTime($h4 * 3600 + $micros4 * 60));
+        $interval1 = $this->createInterval($s1, 0, $s2, 0);
+        $interval2 = $this->createInterval($s3, 0, $s4, 0);
 
-        $this->assertSame($expectedResult, $timeSpan1->contains($timeSpan2));
+        $this->assertSame($expectedResult, $interval1->contains($interval2));
     }
 
     public function providerContains(): array
@@ -462,112 +484,160 @@ class IntervalTest extends AbstractTestCase
         return [
             // [09:00 to 10:00) contains [09:00 to 10:00) = true
             [
-                9, 0, 10, 0,
-                9, 0, 10, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
                 true
             ],
 
             // [09:00 to 10:00) contains [09:00 to 09:30) = true
             [
-                9, 0, 10,  0,
-                9, 0,  9, 30,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                9 * 3600 + 0 * 60,
+                9 * 3600 + 30 * 60,
                 true
             ],
 
             // [09:00 to 10:00) contains [09:30 to 10:00) = true
             [
-                9, 0,  10, 0,
-                9, 30, 10, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                9 * 3600 + 30 * 60,
+                10 * 3600 + 0 * 60,
                 true
             ],
 
             // [09:00 to 10:00) contains [09:15 to 09:45) = true
             [
-                9, 0,  10,  0,
-                9, 15,  9, 45,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                9 * 3600 + 15 * 60,
+                9 * 3600 + 45 * 60,
                 true
             ],
 
             // [09:00 to 10:00) contains [09:00 to 09:00) = true
             [
-                9, 0, 10, 0,
-                9, 0,  9, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                9 * 3600 + 0 * 60,
+                9 * 3600 + 0 * 60,
                 true
             ],
 
             // [09:00 to 10:00) contains [08:59 to 10:00) = false (otherStart before thisStart)
             [
-                9, 0,  10, 0,
-                8, 59, 10, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                8 * 3600 + 59 * 60,
+                10 * 3600 + 0 * 60,
                 false
             ],
 
             // [09:00 to 10:00) contains [09:00 to 10:01) = false (otherEnd after thisEnd)
             [
-                9, 0, 10, 0,
-                9, 0, 10, 1,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 1 * 60,
                 false
             ],
 
             // [09:00 to 10:00) contains [10:00 to 10:00) = false (otherStart equals thisEnd)
             [
-                 9,  0, 10, 0,
-                10,  0, 10, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
                 false
             ],
 
             // [14:00 to 14:00) contains [14:00 to 14:00) = false (zero duration contains nothing)
             [
-                14,  0, 14, 0,
-                14,  0, 14, 0,
+                14 * 3600 + 0 * 60,
+                14 * 3600 + 0 * 60,
+                14 * 3600 + 0 * 60,
+                14 * 3600 + 0 * 60,
                 false
             ]
         ];
     }
 
     /**
-     * @dataProvider providerContainsInstant
+     * @dataProvider providerContainsDateTime
      */
-    public function testContainsInstant(int $h1, int $micros1, int $h2, int $micros2, int $h3, int $micros3, bool $expectedResult): void
+    public function testContainsDateTime(int $s1, int $s2, int $s3, bool $expectedResult): void
     {
-        $interval = new Interval($this->createDateTime($h1 * 3600 + $micros1 * 60), $this->createDateTime($h2 * 3600 + $micros2 * 60));
-        $instant = $this->createDateTime($h3 * 3600 + $micros3 * 60);
+        $interval = $this->createInterval($s1, 0, $s2, 0);
+        $dateTime = $this->createDateTime($s3, 0);
 
-        $this->assertSame($expectedResult, $interval->containsInstant($instant));
+        $this->assertSame($expectedResult, $interval->containsDateTime($dateTime));
     }
 
-    public function providerContainsInstant(): array
+    public function providerContainsDateTime(): array
     {
         return [
             // [09:00 to 10:00) contains 08:59 = false (before start)
-            [9, 0, 10, 0, 8, 59, false],
+            [
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                8 * 3600 + 59 * 60,
+                false
+            ],
 
             // [09:00 to 10:00) contains 09:00 = true
-            [9, 0, 10, 0, 9, 0, true],
+            [
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                9 * 3600 + 0 * 60,
+                true
+            ],
 
             // [09:00 to 10:00) contains 09:59 = true
-            [9, 0, 10, 0, 9, 59, true],
+            [
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                9 * 3600 + 59 * 60,
+                true
+            ],
 
             // [09:00 to 10:00) contains 10:00 = false (equals end)
-            [9, 0, 10, 0, 10, 0, false],
+            [
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                false
+            ],
 
             // [09:00 to 10:00) contains 10:01 = false (after end)
-            [9, 0, 10, 0, 10, 1, false],
+            [
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                10 * 3600 + 1 * 60,
+                false
+            ],
 
             // [14:00 to 14:00) contains 14:00 = false (zero duration contains nothing)
-            [14, 0, 14, 0, 14, 0, false]
+            [
+                14 * 3600 + 0 * 60,
+                14 * 3600 + 0 * 60,
+                14 * 3600 + 0 * 60,
+                false
+            ]
         ];
     }
 
     /**
      * @dataProvider providerOverlaps
      */
-    public function testOverlaps(int $h1, int $micros1, int $h2, int $micros2, int $h3, int $micros3, int $h4, int $micros4, bool $expectedResult): void
+    public function testOverlaps(int $s1, int $s2, int $s3, int $s4, bool $expectedResult): void
     {
-        $timeSpan1 = new Interval($this->createDateTime($h1 * 3600 + $micros1 * 60), $this->createDateTime($h2 * 3600 + $micros2 * 60));
-        $timeSpan2 = new Interval($this->createDateTime($h3 * 3600 + $micros3 * 60), $this->createDateTime($h4 * 3600 + $micros4 * 60));
+        $interval1 = $this->createInterval($s1, 0, $s2, 0);
+        $interval2 = $this->createInterval($s3, 0, $s4, 0);
 
-        $this->assertSame($expectedResult, $timeSpan1->overlaps($timeSpan2));
+        $this->assertSame($expectedResult, $interval1->overlaps($interval2));
     }
 
     public function providerOverlaps(): array
@@ -575,120 +645,154 @@ class IntervalTest extends AbstractTestCase
         return [
             // [09:00 to 10:00) overlaps [08:00 to 08:30) = false (completely before)
             [
-                9, 0, 10,  0,
-                8, 0,  8, 30,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                8 * 3600 + 0 * 60,
+                8 * 3600 + 30 * 60,
                 false
             ],
 
             // [09:00 to 10:00) contains [08:00 to 09:00) = false (abuts before)
             [
-                9, 0, 10, 0,
-                8, 0,  9, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                8 * 3600 + 0 * 60,
+                9 * 3600 + 0 * 60,
                 false
             ],
 
             // [09:00 to 10:00) overlaps [08:00 to 09:30) = true
             [
-                9, 0, 10,  0,
-                8, 0,  9, 30,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                8 * 3600 + 0 * 60,
+                9 * 3600 + 30 * 60,
                 true
             ],
 
             // [09:00 to 10:00) overlaps [08:00 to 10:00) = true
             [
-                9, 0, 10, 0,
-                8, 0, 10, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                8 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
                 true
             ],
 
             // [09:00 to 10:00) overlaps [08:00 to 11:00) = true
             [
-                9, 0, 10, 0,
-                8, 0, 11, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                8 * 3600 + 0 * 60,
+                11 * 3600 + 0 * 60,
                 true
             ],
 
             // [09:00 to 10:00) overlaps [09:00 to 09:00) = false (abuts before)
             [
-                9, 0, 10, 0,
-                9, 0,  9, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                9 * 3600 + 0 * 60,
+                9 * 3600 + 0 * 60,
                 false
             ],
 
             // [09:00 to 10:00) overlaps [09:00 to 09:30) = true
             [
-                9, 0, 10,  0,
-                9, 0,  9, 30,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                9 * 3600 + 0 * 60,
+                9 * 3600 + 30 * 60,
                 true
             ],
 
             // [09:00 to 10:00) overlaps [09:00 to 10:00) = true
             [
-                9, 0, 10, 0,
-                9, 0, 10, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
                 true
             ],
 
             // [09:00 to 10:00) overlaps [09:00 to 11:00) = true
             [
-                9, 0, 10, 0,
-                9, 0, 11, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                9 * 3600 + 0 * 60,
+                11 * 3600 + 0 * 60,
                 true
             ],
 
             // [09:00 to 10:00) overlaps [09:30 to 09:30) = true
             [
-                9,  0, 10,  0,
-                9, 30,  9, 30,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                9 * 3600 + 30 * 60,
+                9 * 3600 + 30 * 60,
                 true
             ],
 
             // [09:00 to 10:00) overlaps [09:30 to 10:00) = true
             [
-                9,  0, 10, 0,
-                9, 30, 10, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                9 * 3600 + 30 * 60,
+                10 * 3600 + 0 * 60,
                 true
             ],
 
             // [09:00 to 10:00) overlaps [09:30 to 11:00) = true
             [
-                9,  0, 10, 0,
-                9, 30, 11, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                9 * 3600 + 30 * 60,
+                11 * 3600 + 0 * 60,
                 true
             ],
 
             // [09:00 to 10:00) overlaps [10:00 to 10:00) = false (abuts after)
             [
-                 9, 0, 10, 0,
-                10, 0, 10, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
                 false
             ],
 
             // [09:00 to 10:00) overlaps [10:00 to 11:00) = false (abuts after)
             [
-                 9, 0, 10, 0,
-                10, 0, 11, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                11 * 3600 + 0 * 60,
                 false
             ],
 
             // [09:00 to 10:00) overlaps [10:30 to 11:00) = false (completely after)
             [
-                 9,  0, 10, 0,
-                10, 30, 11, 0,
+                9 * 3600 + 0 * 60,
+                10 * 3600 + 0 * 60,
+                10 * 3600 + 30 * 60,
+                11 * 3600 + 0 * 60,
                 false
             ],
 
             // [14:00 to 14:00) overlaps [14:00 to 14:00) = false (abuts before and after)
             [
-                14, 0, 14, 0,
-                14, 0, 14, 0,
+                14 * 3600 + 0 * 60,
+                14 * 3600 + 0 * 60,
+                14 * 3600 + 0 * 60,
+                14 * 3600 + 0 * 60,
                 false
             ],
 
             // [14:00 to 14:00) overlaps [13:00 to 15:00) = true
             [
-                14, 0, 14, 0,
-                13, 0, 15, 0,
+                14 * 3600 + 0 * 60,
+                14 * 3600 + 0 * 60,
+                13 * 3600 + 0 * 60,
+                15 * 3600 + 0 * 60,
                 true
             ]
         ];
@@ -697,12 +801,12 @@ class IntervalTest extends AbstractTestCase
     /**
      * @dataProvider providerIsEqualTo
      */
-    public function testIsEqualTo(int $seconds1, int $micros1, int $seconds2, int $micros2, int $seconds3, int $micros3, int $seconds4, int $micros4, bool $expectedResult): void
+    public function testIsEqualTo(int $second1, int $micro1, int $second2, int $micro2, int $second3, int $micro3, int $second4, int $micro4, bool $expectedResult): void
     {
-        $timeSpan1 = new Interval($this->createDateTime($seconds1, $micros1), $this->createDateTime($seconds2, $micros2));
-        $timeSpan2 = new Interval($this->createDateTime($seconds3, $micros3), $this->createDateTime($seconds4, $micros4));
+        $interval1 = $this->createInterval($second1, $micro1, $second2, $micro2);
+        $interval2 = $this->createInterval($second3, $micro3, $second4, $micro4);
 
-        $this->assertSame($expectedResult, $timeSpan1->isEqualTo($timeSpan2));
+        $this->assertSame($expectedResult, $interval1->isEqualTo($interval2));
     }
 
     public function providerIsEqualTo(): array
@@ -720,9 +824,9 @@ class IntervalTest extends AbstractTestCase
     /**
      * @dataProvider providerToString
      */
-    public function testToString(int $seconds1, int $micros1, int $seconds2, int $micros2, string $expectedResult): void
+    public function testToString(int $second1, int $micro1, int $second2, int $micro2, string $expectedResult): void
     {
-        $interval = new Interval($this->createDateTime($seconds1, $micros1), $this->createDateTime($seconds2, $micros2));
+        $interval = $this->createInterval($second1, $micro1, $second2, $micro2);
 
         $this->assertSame($expectedResult, (string) $interval);
     }
@@ -732,5 +836,18 @@ class IntervalTest extends AbstractTestCase
         return [
             [0, 0, 1, 0, '1970-01-01T00:00:00+00:00/1970-01-01T00:00:01+00:00'],
         ];
+    }
+
+    protected function createInterval(int $second1, int $micro1, int $second2, int $micro2): Interval
+    {
+        $dateTime1 = $this->createDateTime($second1, $micro1);
+        $dateTime2 = $this->createDateTime($second2, $micro2);
+        return new Interval($dateTime1, $dateTime2);
+    }
+
+    protected function createDateTime(int $second, int $micro = 0): \DateTimeInterface
+    {
+        $text = sprintf('%d.%06d', $second, $micro);
+        return \DateTimeImmutable::createFromFormat('U.u', $text);
     }
 }

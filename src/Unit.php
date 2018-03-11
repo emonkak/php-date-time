@@ -7,7 +7,7 @@ namespace Emonkak\DateTime;
 /**
  * A unit of date-time, such as Days or Hours.
  */
-final class Unit
+final class Unit implements UnitInterface
 {
     const MICRO = 'micro';
     const MILLI = 'milli';
@@ -63,7 +63,7 @@ final class Unit
 
     public static function hour(): Unit
     {
-        return self::of(self::DAY);
+        return self::of(self::HOUR);
     }
 
     public static function day(): Unit
@@ -137,21 +137,78 @@ final class Unit
 
     public function addTo(\DateTimeInterface $dateTime, int $amount): DateTime
     {
-        return DateTime::from($dateTime)->plusDuration($this->duration->multipliedBy($amount));
-    }
+        switch ($this->name) {
+            case self::MICRO:
+                return DateTime::from($dateTime)->plusMicros($amount);
 
-    public function subtractFrom(\DateTimeInterface $dateTime, int $amount): DateTime
-    {
-        return DateTime::from($dateTime)->minusDuration($this->duration->multipliedBy($amount));
+            case self::MILLI:
+                return DateTime::from($dateTime)->plusMicros($amount * 1000);
+
+            case self::SECOND:
+                return DateTime::from($dateTime)->plusSeconds($amount);
+
+            case self::MINUTE:
+                return DateTime::from($dateTime)->plusMinutes($amount);
+
+            case self::HOUR:
+                return DateTime::from($dateTime)->plusHours($amount);
+
+            case self::DAY:
+                return DateTime::from($dateTime)->plusDays($amount);
+
+            case self::WEEK:
+                return DateTime::from($dateTime)->plusWeeks($amount);
+
+            case self::MONTH:
+                return DateTime::from($dateTime)->plusMonths($amount);
+
+            case self::YEAR:
+                return DateTime::from($dateTime)->plusYears($amount);
+
+            case self::FOREVER:
+                if ($amount > 0) {
+                    return DateTime::of(9999, 12, 31, 23, 59, 59, 999999);
+                }
+                if ($amount < 0) {
+                    return DateTime::of(-9999, 1, 1, 0, 0, 0, 0);
+                }
+                return DateTime::from($dateTime);
+        }
     }
 
     public function between(\DateTimeInterface $startInclusive, \DateTimeInterface $endExclusive): int
     {
-        $diff = Duration::between($startInclusive, $endExclusive);
+        switch ($this->name) {
+            case self::MICRO:
+                return $this->diffMicros($startInclusive, $endExclusive);
 
-        return $this->duration->getMicros() === 0
-            ? intdiv($diff->getSeconds(), $this->duration->getSeconds())
-            : intdiv($diff->toTotalMicros(), $this->duration->toTotalMicros());
+            case self::MILLI:
+                return intdiv($this->diffMicros($startInclusive, $endExclusive), 1000);
+
+            case self::SECOND:
+                return $this->diffSeconds($startInclusive, $endExclusive);
+
+            case self::MINUTE:
+                return intdiv($this->diffSeconds($startInclusive, $endExclusive), DateTime::SECONDS_PER_MINUTE);
+
+            case self::HOUR:
+                return intdiv($this->diffSeconds($startInclusive, $endExclusive), DateTime::SECONDS_PER_HOUR);
+
+            case self::DAY:
+                return intdiv($this->diffSeconds($startInclusive, $endExclusive), DateTime::SECONDS_PER_DAY);
+
+            case self::WEEK:
+                return intdiv($this->diffSeconds($startInclusive, $endExclusive), DateTime::SECONDS_PER_DAY * DateTime::DAYS_PER_WEEK);
+
+            case self::MONTH:
+                return $this->diffMonths($startInclusive, $endExclusive);
+
+            case self::YEAR:
+                return intdiv($this->diffMonths($startInclusive, $endExclusive), DateTime::MONTHS_PER_YEAR);
+
+            case self::FOREVER:
+                return 0;
+        }
     }
 
     public function getDuration(): Duration
@@ -162,5 +219,44 @@ final class Unit
     public function __toString(): string
     {
         return $this->name;
+    }
+
+    private function diffMicros(\DateTimeInterface $startInclusive, \DateTimeInterface $endExclusive): int
+    {
+        return Duration::between($startInclusive, $endExclusive)->toMicros();
+    }
+
+    private function diffSeconds(\DateTimeInterface $startInclusive, \DateTimeInterface $endExclusive): int
+    {
+        $dateInterval = $startInclusive->diff($endExclusive);
+
+        $seconds = $dateInterval->days * DateTime::SECONDS_PER_DAY
+            + $dateInterval->h * DateTime::SECONDS_PER_HOUR
+            + $dateInterval->i * DateTime::SECONDS_PER_MINUTE
+            + $dateInterval->s;
+
+        if ($dateInterval->f < 0 && $seconds > 0) {
+            $seconds--;
+        }
+
+        if ($dateInterval->invert) {
+            $seconds = -$seconds;
+        }
+
+        return $seconds;
+    }
+
+    private function diffMonths(\DateTimeInterface $startInclusive, \DateTimeInterface $endExclusive): int
+    {
+        $dateInterval = $startInclusive->diff($endExclusive);
+
+        $months = $dateInterval->y * DateTime::MONTHS_PER_YEAR
+            + $dateInterval->m;
+
+        if ($dateInterval->invert) {
+            $months = -$months;
+        }
+
+        return $months;
     }
 }

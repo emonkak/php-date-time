@@ -26,21 +26,28 @@ class DateTime extends \DateTimeImmutable
      */
     public static function of(int $year, int $month, int $day, int $hour = 0, int $minute = 0, int $second = 0, int $micro = 0, \DateTimeZone $timeZone = null): DateTime
     {
-        if (!checkdate($month, $day, $year)) {
-            throw new DateTimeException(sprintf('Invalid date: %04d-%02d-%02d', $year, $month, $day));
+        Field::check(Field::year(), $year);
+        Field::check(Field::monthOfYear(), $month);
+        Field::check(Field::dayOfMonth(), $day);
+        Field::check(Field::hourOfDay(), $hour);
+        Field::check(Field::minuteOfHour(), $minute);
+        Field::check(Field::secondOfMinute(), $second);
+        Field::check(Field::microOfSecond(), $micro);
+
+        if (!checkdate($month, $day, abs($year))) {
+            throw new DateTimeException(sprintf('Invalid day of month: %04d-%02d-%02d', $year, $month, $day));
         }
 
-        Field::hourOfDay()->check($hour);
-        Field::minuteOfHour()->check($minute);
-        Field::secondOfMinute()->check($second);
-        Field::microOfSecond()->check($micro);
-
-        $timestamp = mktime($hour, $minute, $second, $month, $day, $year);
-        $text = date('Y-m-d H:i:s', $timestamp);
-
-        if ($micro !== 0) {
-            $text .= '.' . sprintf('%06d', $micro);
-        }
+        $text = sprintf(
+            '%04d-%02d-%02dT%02d:%02d:%02d.%06d',
+            $year,
+            $month,
+            $day,
+            $hour,
+            $minute,
+            $second,
+            $micro
+        );
 
         return new DateTime($text, $timeZone);
     }
@@ -48,7 +55,7 @@ class DateTime extends \DateTimeImmutable
     /**
      * Creates an instance of date-time using seconds from the epoch of 1970-01-01T00:00:00Z.
      */
-    public static function ofEpochTime(int $epochSecond, int $microAdjustment = 0, \DateTimeZone $timeZone = null): DateTime
+    public static function ofEpochSecond(int $epochSecond, int $microAdjustment = 0, \DateTimeZone $timeZone = null): DateTime
     {
         $micros = $microAdjustment % self::MICROS_PER_SECOND;
         $epochSecond += ($microAdjustment - $micros) / self::MICROS_PER_SECOND;
@@ -60,19 +67,11 @@ class DateTime extends \DateTimeImmutable
 
         $text = date('Y-m-d H:i:s', $epochSecond);
 
-        if ($micro !== 0) {
+        if ($micros !== 0) {
             $text .= '.' . sprintf('%06d', $micros);
         }
 
         return new DateTime($text, $timeZone);
-    }
-
-    /**
-     * Creates the current date-time from the system clock in the default time-zone.
-     */
-    public static function now(\DateTimeZone $timeZone = null): DateTime
-    {
-        return new DateTime('now', $timeZone);
     }
 
     /**
@@ -90,7 +89,7 @@ class DateTime extends \DateTimeImmutable
     /**
      * Gets the value of the specified field from this date as an int.
      */
-    public function get(Field $field): int
+    public function get(FieldInterface $field): int
     {
         return $field->getFrom($this);
     }
@@ -132,7 +131,7 @@ class DateTime extends \DateTimeImmutable
      */
     public function getDayOfWeek(): DayOfWeek
     {
-        return DayOfWeek::of((int) $this->format('w'));
+        return DayOfWeek::of((int) $this->format('N'));
     }
 
     /**
@@ -148,7 +147,7 @@ class DateTime extends \DateTimeImmutable
      */
     public function getDayOfYear(): int
     {
-        return (int) $this->format('z');
+        return (int) $this->format('z') + 1;
     }
 
     /**
@@ -178,7 +177,7 @@ class DateTime extends \DateTimeImmutable
     /**
      * Returns a copy of this date-time with the specified field set to a new value.
      */
-    public function with(Field $field, int $newValue): DateTime
+    public function with(FieldInterface $field, int $newValue): DateTime
     {
         return $field->adjustInto($this, $newValue);
     }
@@ -278,12 +277,17 @@ class DateTime extends \DateTimeImmutable
      */
     public function withMonth(int $month): DateTime
     {
+        Field::check(Field::monthOfYear(), $month);
+
         $fields = $this->getDateTimeFields();
 
+        list ($year, $month, $day) =
+            $this->resolveDate($fields[Field::YEAR], $month, $fields[Field::DAY_OF_MONTH]);
+
         return DateTime::of(
-            $fields[Field::YEAR],
+            $year,
             $month,
-            $fields[Field::DAY_OF_MONTH],
+            $day,
             $fields[Field::HOUR_OF_DAY],
             $fields[Field::MINUTE_OF_HOUR],
             $fields[Field::SECOND_OF_MINUTE],
@@ -296,12 +300,17 @@ class DateTime extends \DateTimeImmutable
      */
     public function withYear(int $year): DateTime
     {
+        Field::check(Field::year(), $year);
+
         $fields = $this->getDateTimeFields();
+
+        list ($year, $month, $day) =
+            $this->resolveDate($year, $fields[Field::MONTH_OF_YEAR], $fields[Field::DAY_OF_MONTH]);
 
         return DateTime::of(
             $year,
-            $fields[Field::MONTH_OF_YEAR],
-            $fields[Field::DAY_OF_MONTH],
+            $month,
+            $day,
             $fields[Field::HOUR_OF_DAY],
             $fields[Field::MINUTE_OF_HOUR],
             $fields[Field::SECOND_OF_MINUTE],
@@ -320,7 +329,7 @@ class DateTime extends \DateTimeImmutable
     /**
      * Returns a copy of this date-time with the specified amount added.
      */
-    public function plus(int $amount, Unit $unit)
+    public function plus(int $amount, UnitInterface $unit)
     {
         return $unit->addTo($this, $amount);
     }
@@ -334,11 +343,9 @@ class DateTime extends \DateTimeImmutable
             return $this;
         }
 
-        $dateInterval = new \DateInterval((string) $duration->withMicro(0)->abs());
-        $dateInterval->f = $duration->getMicros() / self::MICROS_PER_SECOND;
-        $dateInterval->invert = $duration->isNegative() > 0 ? 1 : 0;
-
-        return $this->add($dateInterval);
+        return $this
+            ->plusSeconds($duration->getSeconds())
+            ->plusMicros($duration->getMicros());
     }
 
     /**
@@ -350,15 +357,24 @@ class DateTime extends \DateTimeImmutable
             return $this;
         }
 
-        $remainder = $micros % self::MICROS_PER_SECOND;
-        $seconds = ($micros - $remainder) / self::MICROS_PER_SECOND;
-        $micros = $remainder;
+        $micro = $this->getMicro();
+        $totalMicros = $micro + $micros;
 
-        $dateInterval = new \DateInterval('PT' . $seconds . 'S');
-        $dateInterval->f = $micros / self::MICROS_PER_SECOND;
-        $dateInterval->invert = $micros < 0 ? 1 : 0;
+        $newMicro = $totalMicros % self::MICROS_PER_SECOND;
+        $secondsToAdd = intdiv($totalMicros, self::MICROS_PER_SECOND);
 
-        return $this->add($dateInterval);
+        if ($newMicro < 0) {
+            $newMicro += self::MICROS_PER_SECOND;
+            $secondsToAdd--;
+        }
+
+        $dateTime = $this;
+
+        if ($micro !== $newMicro) {
+            $dateTime = $dateTime->withMicro($newMicro);
+        }
+
+        return $dateTime->plusSeconds($secondsToAdd);
     }
 
     /**
@@ -448,7 +464,14 @@ class DateTime extends \DateTimeImmutable
         $dateInterval = new \DateInterval('P' . abs($months) . 'M');
         $dateInterval->invert = $months < 0 ? 1 : 0;
 
-        return $this->add($dateInterval);
+        $dateTime = $this->add($dateInterval);
+        $dayOfMonth = $dateTime->getDayOfMonth();
+
+        if ($dayOfMonth !== $this->getDayOfMonth()) {
+            $dateTime = $dateTime->sub(new \DateInterval('P' . $dayOfMonth . 'D'));
+        }
+
+        return $dateTime;
     }
 
     /**
@@ -463,15 +486,22 @@ class DateTime extends \DateTimeImmutable
         $dateInterval = new \DateInterval('P' . abs($years) . 'Y');
         $dateInterval->invert = $years < 0 ? 1 : 0;
 
-        return $this->add($dateInterval);
+        $dateTime = $this->add($dateInterval);
+        $dayOfMonth = $dateTime->getDayOfMonth();
+
+        if ($dayOfMonth !== $this->getDayOfMonth()) {
+            $dateTime = $dateTime->sub(new \DateInterval('P' . $dayOfMonth . 'D'));
+        }
+
+        return $dateTime;
     }
 
     /**
      * Returns a copy of this date-time with the specified amount subtracted.
      */
-    public function minus(int $amount, Unit $unit): DateTime
+    public function minus(int $amount, UnitInterface $unit): DateTime
     {
-        return $unit->subtractFrom($this, $amount);
+        return $unit->addTo($this, -$amount);
     }
 
     /**
@@ -479,7 +509,13 @@ class DateTime extends \DateTimeImmutable
      */
     public function minusDuration(Duration $duration): DateTime
     {
-        return $this->plusDuration($duration->negated());
+        if ($duration->isZero()) {
+            return $this;
+        }
+
+        return $this
+            ->minusSeconds($duration->getSeconds())
+            ->minusMicros($duration->getMicros());
     }
 
     /**
@@ -549,7 +585,7 @@ class DateTime extends \DateTimeImmutable
     /**
      * Calculates the amount of time until another instant in terms of the specified unit.
      */
-    public function until(\DateTimeInterface $endExclusive, Unit $unit): int
+    public function until(\DateTimeInterface $endExclusive, UnitInterface $unit): int
     {
         return $unit->between($this, $endExclusive);
     }
@@ -559,22 +595,7 @@ class DateTime extends \DateTimeImmutable
      */
     public function toEpochSecond(): int
     {
-        return $this->getTimestamp();
-    }
-
-    /**
-     * Gets the time part of this date-time.
-     */
-    public function toTime(): Time
-    {
-        $fields = $this->getTimeFields();
-
-        return Time::of(
-            $fields[Field::HOUR_OF_DAY],
-            $fields[Field::MINUTE_OF_HOUR],
-            $fields[Field::SECOND_OF_MINUTE],
-            $fields[Field::MICRO_OF_SECOND]
-        );
+        return $this->getTimestamp() + $this->getTimeZone()->getOffset($this);
     }
 
     /**
@@ -614,7 +635,10 @@ class DateTime extends \DateTimeImmutable
         list ($dateTime, $micros, $timeZone) =
             explode(' ', $this->format('Y-m-d\TH:i:s u P'));
 
-        return $dateTime . ($micros != 0 ? rtrim('.' . $micros, '0') : '') . $timeZone;
+        $micros = $micros != 0 ? rtrim('.' . $micros, '0') : '';
+        $timeZone = $timeZone === '+00:00' ? 'Z' : $timeZone;
+
+        return $dateTime . $micros . $timeZone;
     }
 
     private function getDateTimeFields(): array
@@ -633,15 +657,12 @@ class DateTime extends \DateTimeImmutable
         ];
     }
 
-    private function getTimeFields(): array
+    private function resolveDate(int $year, int $month, int $day): array
     {
-        list ($hour, $minute, $second, $micro) = explode(' ', $this->format('G i s u'));
+        if ($day > 28) {
+            $day = min($day, (int) date('t', mktime(0, 0, 0, $month, 1, $year)));
+        }
 
-        return [
-            Field::HOUR_OF_DAY => (int) $hour,
-            Field::MINUTE_OF_HOUR => (int) $minute,
-            Field::SECOND_OF_MINUTE => (int) $second,
-            Field::MICRO_OF_SECOND => (int) $micro
-        ];
+        return [$year, $month, $day];
     }
 }

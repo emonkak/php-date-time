@@ -28,7 +28,7 @@ class SystemClock implements ClockInterface
         $this->timeZone = $timeZone;
     }
 
-    public function getDateTime(): DateTime
+    public function getDateTime(): \DateTimeInterface
     {
         return new DateTime('now', $this->timeZone);
     }

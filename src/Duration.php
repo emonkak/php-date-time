@@ -61,7 +61,7 @@ class Duration
     public static function ofSeconds(int $seconds, int $microAdjustment = 0): Duration
     {
         $micros = $microAdjustment % DateTime::MICROS_PER_SECOND;
-        $seconds += ($microAdjustment - $micros) / DateTime::MICROS_PER_SECOND;
+        $seconds += intdiv($microAdjustment, DateTime::MICROS_PER_SECOND);
 
         if ($micros < 0) {
             $micros += DateTime::MICROS_PER_SECOND;
@@ -435,7 +435,7 @@ class Duration
     /**
      * Returns a copy of this duration truncated to the specified unit.
      */
-    public function truncatedTo(Unit $unit): Duration
+    public function truncatedTo(UnitInterface $unit): Duration
     {
         $unitDuration = $unit->getDuration();
 
@@ -444,7 +444,7 @@ class Duration
         }
 
         $unitMicros = $unitDuration->toMicros();
-        if ((DateTime::MICROS_PER_DAY % $unitMicros) !== 0) {
+        if ($unitMicros === 0 || (DateTime::MICROS_PER_DAY % $unitMicros) !== 0) {
             throw new DateTimeException('Unit must divide into a standard day without remainder.');
         }
 
@@ -459,10 +459,15 @@ class Duration
      */
     public function toMicros(): int
     {
-        $micros = $this->seconds * DateTime::MICROS_PER_SECOND;
-        $micros += $this->micros;
+        $seconds = $this->seconds;
+        $micros = $this->micros;
 
-        return $micros;
+        if ($seconds < 0) {
+            $seconds = $seconds + 1;
+            $micros = $micros - DateTime::MICROS_PER_SECOND;
+        }
+
+        return $seconds * DateTime::MICROS_PER_SECOND + $micros;
     }
 
     /**

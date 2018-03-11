@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+namespace Emonkak\DateTime\Clock;
+
 use Emonkak\DateTime\DateTime;
+use Emonkak\DateTime\Duration;
 
 class OffsetClock implements ClockInterface
 {
@@ -22,8 +25,9 @@ class OffsetClock implements ClockInterface
         $this->offset = $offset;
     }
 
-    public function getDateTime(): DateTime
+    public function getDateTime(): \DateTimeInterface
     {
-        return $this->baseClock->getDateTime()->plus($this->offset);
+        return DateTime::from($this->baseClock->getDateTime())
+            ->plusDuration($this->offset);
     }
 }

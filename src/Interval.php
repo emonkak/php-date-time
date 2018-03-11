@@ -172,9 +172,9 @@ class Interval
     }
 
     /**
-     * Returns whether this interval contain the specified instant.
+     * Returns whether this interval contain the specified date-time.
      */
-    public function containsInstant(\DateTimeInterface $dateTime): bool
+    public function containsDateTime(\DateTimeInterface $dateTime): bool
     {
         $thisStart = $this->start;
         $thisEnd = $this->end;

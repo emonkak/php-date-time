@@ -7,7 +7,7 @@ namespace Emonkak\DateTime;
 /**
  * A field of date-time, such as month-of-year or hour-of-minute.
  */
-final class Field
+final class Field implements FieldInterface
 {
     const MICRO_OF_SECOND = 'micro-of-second';
     const MILLI_OF_SECOND = 'milli-of-second';
@@ -16,7 +16,8 @@ final class Field
     const MINUTE_OF_HOUR = 'minute-of-hour';
     const HOUR_OF_DAY = 'hour-of-day';
     const DAY_OF_WEEK = 'day-of-week';
-    const DAY_Of_MONTH = 'day-of-month';
+    const DAY_OF_MONTH = 'day-of-month';
+    const DAY_OF_YEAR = 'day-of-year';
     const MONTH_OF_YEAR = 'month-of-year';
     const YEAR = 'year';
 
@@ -54,6 +55,19 @@ final class Field
         }
 
         return $values[$name];
+    }
+
+    public static function check(FieldInterface $field, int $value): void
+    {
+        if (!$field->validate($value)) {
+            throw new DateTimeException(sprintf(
+                'Invalid %s field: %d is not in the range %d to %d.',
+                $field,
+                $value,
+                $field->getMinValue(),
+                $field->getMaxValue()
+            ));
+        }
     }
 
     public static function microOfSecond(): Field
@@ -96,6 +110,11 @@ final class Field
         return self::of(self::DAY_OF_MONTH);
     }
 
+    public static function dayOfYear(): Field
+    {
+        return self::of(self::DAY_OF_YEAR);
+    }
+
     public static function monthOfYear(): Field
     {
         return self::of(self::MONTH_OF_YEAR);
@@ -133,18 +152,21 @@ final class Field
             case self::DAY_OF_MONTH:
                 return new Field($name, Unit::day(), Unit::month(), 1, 31);
 
+            case self::DAY_OF_YEAR:
+                return new Field($name, Unit::day(), Unit::year(), 1, 366);
+
             case self::MONTH_OF_YEAR:
                 return new Field($name, Unit::month(), Unit::year(), 1, 12);
 
             case self::YEAR:
-                return new Field($name, Unit::year(), Unit::forever(), PHP_INT_MIN, PHP_INT_MAX);
+                return new Field($name, Unit::year(), Unit::forever(), -9999, 9999);
 
             default:
                 throw new DateTimeException('Invalid name for field: ' . $name);
         }
     }
 
-    private function __construct(string $name, Unit $baseUnit, Unit $rangeUnit, int $minValue, int $maxValue)
+    private function __construct(string $name, UnitInterface $baseUnit, UnitInterface $rangeUnit, int $minValue, int $maxValue)
     {
         $this->name = $name;
         $this->baseUnit = $baseUnit;
@@ -153,12 +175,12 @@ final class Field
         $this->maxValue = $maxValue;
     }
 
-    public function getBaseUnit(): Unit
+    public function getBaseUnit(): UnitInterface
     {
         return $this->baseUnit;
     }
 
-    public function getRangeUnit(): Unit
+    public function getRangeUnit(): UnitInterface
     {
         return $this->rangeUnit;
     }
@@ -188,7 +210,7 @@ final class Field
                 return $dateTime->getSecond();
 
             case self::SECOND_OF_DAY:
-                return $dateTime->toSecondOfDay();
+                return $dateTime->getHour() * DateTime::SECONDS_PER_HOUR + $dateTime->getMinute() * DateTime::SECONDS_PER_MINUTE + $dateTime->getSecond();
 
             case self::MINUTE_OF_HOUR:
                 return $dateTime->getMinute();
@@ -199,11 +221,14 @@ final class Field
             case self::DAY_OF_WEEK:
                 return $dateTime->getDayOfWeek()->getValue();
 
-            case self::DAY_Of_MONTH:
+            case self::DAY_OF_MONTH:
                 return $dateTime->getDayOfMonth();
 
-            case self::MONTH_OF_YEAR:
+            case self::DAY_OF_YEAR:
                 return $dateTime->getDayOfYear();
+
+            case self::MONTH_OF_YEAR:
+                return $dateTime->getMonth();
 
             case self::YEAR:
                 return $dateTime->getYear();
@@ -222,22 +247,25 @@ final class Field
                 return $dateTime->withMicro($newValue * 1000);
 
             case self::SECOND_OF_MINUTE:
-                return $dateTime->withMinute($newValue);
+                return $dateTime->withSecond($newValue);
 
             case self::SECOND_OF_DAY:
-                return $dateTime->plusSeconds($newValue - $dateTime->toSecondOfDay());
+                return $dateTime->plusSeconds($newValue - $this->getFrom($dateTime));
 
             case self::MINUTE_OF_HOUR:
-                return $dateTime->withHour($newValue);
+                return $dateTime->withMinute($newValue);
 
             case self::HOUR_OF_DAY:
-                return $dateTime->withDay($newValue);
+                return $dateTime->withHour($newValue);
 
             case self::DAY_OF_WEEK:
                 return $dateTime->plusDays($newValue - $dateTime->getDayOfWeek()->getValue());
 
-            case self::DAY_Of_MONTH:
+            case self::DAY_OF_MONTH:
                 return $dateTime->withDay($newValue);
+
+            case self::DAY_OF_YEAR:
+                return $dateTime->plusDays($newValue - $dateTime->getDayOfYear());
 
             case self::MONTH_OF_YEAR:
                 return $dateTime->withMonth($newValue);
@@ -250,19 +278,6 @@ final class Field
     public function validate(int $value): bool
     {
         return $this->minValue <= $value && $value <= $this->maxValue;
-    }
-
-    public function check(int $value): void
-    {
-        if (!$this->validate($value)) {
-            throw new DateTimeException(sprintf(
-                'Invalid %s field: %d is not in the range %d to %d.',
-                $this,
-                $value,
-                $this->getMinValue(),
-                $this->getMaxValue()
-            ));
-        }
     }
 
     public function __toString(): string
