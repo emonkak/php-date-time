@@ -18,7 +18,7 @@ class SystemClock implements ClockInterface
         return new SystemClock(new \DateTimeZone('UTC'));
     }
 
-    public static function default(): SystemClock
+    public static function defaultTimeZone(): SystemClock
     {
         return new SystemClock(new \DateTimeZone(date_default_timezone_get()));
     }

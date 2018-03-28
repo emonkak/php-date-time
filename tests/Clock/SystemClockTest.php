@@ -15,10 +15,10 @@ class SystemClockTest extends AbstractTestCase
         $this->assertSame('UTC', $dateTime->getTimeZone()->getName());
     }
 
-    public function testDefault(): void
+    public function testDefaultTimeZone(): void
     {
         $now = new \DateTimeImmutable();
-        $dateTime = SystemClock::default()->getDateTime();
+        $dateTime = SystemClock::defaultTimeZone()->getDateTime();
         $this->assertSame('UTC', $dateTime->getTimeZone()->getName());
         $this->greaterThanOrEqual($now, $dateTime);
     }
