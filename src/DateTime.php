@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Emonkak\DateTime;
 
-class DateTime extends \DateTimeImmutable
+class DateTime extends \DateTimeImmutable implements \JsonSerializable
 {
     const MONTHS_PER_YEAR    = 12;
     const DAYS_PER_WEEK      = 7;
@@ -639,6 +639,14 @@ class DateTime extends \DateTimeImmutable
         $timeZone = $timeZone === '+00:00' ? 'Z' : $timeZone;
 
         return $dateTime . $micros . $timeZone;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public function jsonSerialize()
+    {
+        return $this->__toString();
     }
 
     private function getDateTimeFields(): array

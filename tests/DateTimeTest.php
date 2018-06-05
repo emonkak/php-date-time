@@ -910,4 +910,19 @@ class DateTimeTest extends AbstractTestCase
             ['2001-12-23T12:34:56.654321+09:00', '12:34:56.654321']
         ];
     }
+
+    /**
+     * @dataProvider providerJsonSerialize
+     */
+    public function testJsonSerialize(string $dateTimeString, string $expectedString): void
+    {
+        $this->assertSame($expectedString, json_encode(new DateTime($dateTimeString)));
+    }
+
+    public function providerJsonSerialize(): array
+    {
+        return [
+            ['2001-02-03T04:05:06.123456+09:00', '"2001-02-03T04:05:06.123456+09:00"'],
+        ];
+    }
 }
