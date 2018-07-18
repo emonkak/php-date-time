@@ -16,6 +16,22 @@ use Emonkak\DateTime\UnitInterface;
 class DateTimeTest extends AbstractTestCase
 {
     /**
+     * @dataProvider providerInvalidDateTimeString
+     * @expectedException Emonkak\DateTime\DateTimeException
+     */
+    public function testInvalidDateTimeString(string $dateTimeString): void
+    {
+        new DateTime($dateTimeString);
+    }
+
+    public function providerInvalidDateTimeString(): array
+    {
+        return [
+            ['0000-00-00 00:00:00']
+        ];
+    }
+
+    /**
      * @dataProvider providerOf
      */
     public function testOf(int $y, int $m, int $d, int $h, int $i, int $s, int $c, string $timeZone): void

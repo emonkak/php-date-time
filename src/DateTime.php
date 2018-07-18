@@ -87,6 +87,28 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     }
 
     /**
+     * Parses a string that can be interpreted as date-time format.
+     */
+    public function __construct(string $dateTimeString = 'now', \DateTimeZone $timeZone = null)
+    {
+        parent::__construct($dateTimeString, $timeZone);
+
+        $errors = self::getLastErrors();
+
+        if ($errors['warning_count'] > 0) {
+            $warnings = $errors['warnings'];
+            $position = key($warnings);
+            $message = $warnings[$position];
+            throw new DateTimeException(sprintf(
+                'Failed to parse date-time string "%s" at %d: %s',
+                $dateTimeString,
+                $position,
+                $message
+            ));
+        }
+    }
+
+    /**
      * Gets the value of the specified field from this date as an int.
      */
     public function get(FieldInterface $field): int
