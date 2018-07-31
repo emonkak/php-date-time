@@ -205,6 +205,24 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     }
 
     /**
+     * Returns a copy of this date-time with the time altered.
+     */
+    public function withTime(int $hour, int $minute, int $second = 0, int $micro = 0): DateTime
+    {
+        $fields = $this->getDateTimeFields();
+
+        return DateTime::of(
+            $fields[Field::YEAR],
+            $fields[Field::MONTH_OF_YEAR],
+            $fields[Field::DAY_OF_MONTH],
+            $hour,
+            $minute,
+            $second,
+            $micro
+        );
+    }
+
+    /**
      * Returns a copy of this date-time with the micro-of-second altered.
      */
     public function withMicro(int $micro): DateTime
@@ -270,6 +288,24 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
             $fields[Field::MONTH_OF_YEAR],
             $fields[Field::DAY_OF_MONTH],
             $hour,
+            $fields[Field::MINUTE_OF_HOUR],
+            $fields[Field::SECOND_OF_MINUTE],
+            $fields[Field::MICRO_OF_SECOND]
+        );
+    }
+
+    /**
+     * Returns a copy of this date-time with the date altered.
+     */
+    public function withDate(int $year, int $month, int $day): DateTime
+    {
+        $fields = $this->getDateTimeFields();
+
+        return DateTime::of(
+            $year,
+            $month,
+            $day,
+            $fields[Field::HOUR_OF_DAY],
             $fields[Field::MINUTE_OF_HOUR],
             $fields[Field::SECOND_OF_MINUTE],
             $fields[Field::MICRO_OF_SECOND]

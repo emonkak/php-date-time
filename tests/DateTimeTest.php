@@ -303,6 +303,7 @@ class DateTimeTest extends AbstractTestCase
     {
         $dateTime = DateTime::of(2001, 2, 3, 4, 5, 6, 123456);
         $this->assertDateTimeIs(2001, 2, 3, 4, 5, 6, $micro, '+00:00', $dateTime->withMicro($micro));
+        $this->assertDateTimeIs(2001, 2, 3, 4, 5, 6, $micro, '+00:00', $dateTime->withTime(4, 5, 6, $micro));
         $this->assertDateTimeIs(2001, 2, 3, 4, 5, 6, $micro, '+00:00', $dateTime->with(Field::microOfSecond(), $micro));
     }
 
@@ -338,6 +339,7 @@ class DateTimeTest extends AbstractTestCase
     {
         $dateTime = DateTime::of(2001, 2, 3, 4, 5, 6, 123456);
         $this->assertDateTimeIs(2001, 2, 3, 4, 5, $second, 123456, '+00:00', $dateTime->withSecond($second));
+        $this->assertDateTimeIs(2001, 2, 3, 4, 5, $second, 123456, '+00:00', $dateTime->withTime(4, 5, $second, 123456));
         $this->assertDateTimeIs(2001, 2, 3, 4, 5, $second, 123456, '+00:00', $dateTime->with(Field::secondOfMinute(), $second));
     }
 
@@ -373,6 +375,7 @@ class DateTimeTest extends AbstractTestCase
     {
         $dateTime = DateTime::of(2001, 2, 3, 4, 5, 6, 123456);
         $this->assertDateTimeIs(2001, 2, 3, 4, $minute, 6, 123456, '+00:00', $dateTime->withMinute($minute));
+        $this->assertDateTimeIs(2001, 2, 3, 4, $minute, 6, 123456, '+00:00', $dateTime->withTime(4, $minute, 6, 123456));
         $this->assertDateTimeIs(2001, 2, 3, 4, $minute, 6, 123456, '+00:00', $dateTime->with(Field::minuteOfHour(), $minute));
     }
 
@@ -408,6 +411,7 @@ class DateTimeTest extends AbstractTestCase
     {
         $dateTime = DateTime::of(2001, 2, 3, 4, 5, 6, 123456);
         $this->assertDateTimeIs(2001, 2, 3, $hour, 5, 6, 123456, '+00:00', $dateTime->withHour($hour));
+        $this->assertDateTimeIs(2001, 2, 3, $hour, 5, 6, 123456, '+00:00', $dateTime->withTime($hour, 5, 6, 123456));
         $this->assertDateTimeIs(2001, 2, 3, $hour, 5, 6, 123456, '+00:00', $dateTime->with(Field::hourOfDay(), $hour));
     }
 
@@ -443,6 +447,7 @@ class DateTimeTest extends AbstractTestCase
     {
         $dateTime = DateTime::of($year, $month, $day, 1, 2, 3, 123456);
         $this->assertDateTimeIs($year, $month, $newDay, 1, 2, 3, 123456, '+00:00', $dateTime->withDay($newDay));
+        $this->assertDateTimeIs($year, $month, $newDay, 1, 2, 3, 123456, '+00:00', $dateTime->withDate($year, $month, $newDay));
         $this->assertDateTimeIs($year, $month, $newDay, 1, 2, 3, 123456, '+00:00', $dateTime->with(Field::dayOfMonth(), $newDay));
     }
 
@@ -483,6 +488,7 @@ class DateTimeTest extends AbstractTestCase
     {
         $dateTime = DateTime::of($year, $month, $day, 1, 2, 3, 123456);
         $this->assertDateTimeIs($year, $newMonth, $expectedDay, 1, 2, 3, 123456, '+00:00', $dateTime->withMonth($newMonth));
+        $this->assertDateTimeIs($year, $newMonth, $expectedDay, 1, 2, 3, 123456, '+00:00', $dateTime->withDate($year, $newMonth, $expectedDay));
         $this->assertDateTimeIs($year, $newMonth, $expectedDay, 1, 2, 3, 123456, '+00:00', $dateTime->with(Field::monthOfYear(), $newMonth));
     }
 
@@ -530,6 +536,7 @@ class DateTimeTest extends AbstractTestCase
     {
         $dateTime = DateTime::of($year, $month, $day, 1, 2, 3, 123456);
         $this->assertDateTimeIs($newYear, $month, $expectedDay, 1, 2, 3, 123456, '+00:00', $dateTime->withYear($newYear));
+        $this->assertDateTimeIs($newYear, $month, $expectedDay, 1, 2, 3, 123456, '+00:00', $dateTime->withDate($newYear, $month, $expectedDay));
         $this->assertDateTimeIs($newYear, $month, $expectedDay, 1, 2, 3, 123456, '+00:00', $dateTime->with(Field::year(), $newYear));
     }
 
