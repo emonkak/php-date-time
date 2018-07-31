@@ -218,7 +218,8 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
             $hour,
             $minute,
             $second,
-            $micro
+            $micro,
+            $this->getTimeZone()
         );
     }
 
@@ -236,7 +237,8 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
             $fields[Field::HOUR_OF_DAY],
             $fields[Field::MINUTE_OF_HOUR],
             $fields[Field::SECOND_OF_MINUTE],
-            $micro
+            $micro,
+            $this->getTimeZone()
         );
     }
 
@@ -254,7 +256,8 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
             $fields[Field::HOUR_OF_DAY],
             $fields[Field::MINUTE_OF_HOUR],
             $second,
-            $fields[Field::MICRO_OF_SECOND]
+            $fields[Field::MICRO_OF_SECOND],
+            $this->getTimeZone()
         );
     }
 
@@ -272,7 +275,8 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
             $fields[Field::HOUR_OF_DAY],
             $minute,
             $fields[Field::SECOND_OF_MINUTE],
-            $fields[Field::MICRO_OF_SECOND]
+            $fields[Field::MICRO_OF_SECOND],
+            $this->getTimeZone()
         );
     }
 
@@ -290,7 +294,8 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
             $hour,
             $fields[Field::MINUTE_OF_HOUR],
             $fields[Field::SECOND_OF_MINUTE],
-            $fields[Field::MICRO_OF_SECOND]
+            $fields[Field::MICRO_OF_SECOND],
+            $this->getTimeZone()
         );
     }
 
@@ -308,7 +313,8 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
             $fields[Field::HOUR_OF_DAY],
             $fields[Field::MINUTE_OF_HOUR],
             $fields[Field::SECOND_OF_MINUTE],
-            $fields[Field::MICRO_OF_SECOND]
+            $fields[Field::MICRO_OF_SECOND],
+            $this->getTimeZone()
         );
     }
 
@@ -326,7 +332,8 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
             $fields[Field::HOUR_OF_DAY],
             $fields[Field::MINUTE_OF_HOUR],
             $fields[Field::SECOND_OF_MINUTE],
-            $fields[Field::MICRO_OF_SECOND]
+            $fields[Field::MICRO_OF_SECOND],
+            $this->getTimeZone()
         );
     }
 
@@ -349,7 +356,8 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
             $fields[Field::HOUR_OF_DAY],
             $fields[Field::MINUTE_OF_HOUR],
             $fields[Field::SECOND_OF_MINUTE],
-            $fields[Field::MICRO_OF_SECOND]
+            $fields[Field::MICRO_OF_SECOND],
+            $this->getTimeZone()
         );
     }
 
@@ -372,7 +380,8 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
             $fields[Field::HOUR_OF_DAY],
             $fields[Field::MINUTE_OF_HOUR],
             $fields[Field::SECOND_OF_MINUTE],
-            $fields[Field::MICRO_OF_SECOND]
+            $fields[Field::MICRO_OF_SECOND],
+            $this->getTimeZone()
         );
     }
 
