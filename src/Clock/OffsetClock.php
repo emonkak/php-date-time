@@ -25,9 +25,9 @@ class OffsetClock implements ClockInterface
         $this->offset = $offset;
     }
 
-    public function getDateTime(): \DateTimeInterface
+    public function getDateTime(): DateTime
     {
-        return DateTime::from($this->baseClock->getDateTime())
+        return $this->baseClock->getDateTime()
             ->plusDuration($this->offset);
     }
 }
