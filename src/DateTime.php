@@ -4,27 +4,30 @@ declare(strict_types=1);
 
 namespace Emonkak\DateTime;
 
+/**
+ * @psalm-suppress MissingImmutableAnnotation
+ */
 class DateTime extends \DateTimeImmutable implements \JsonSerializable
 {
-    const MONTHS_PER_YEAR    = 12;
-    const DAYS_PER_WEEK      = 7;
-    const HOURS_PER_DAY      = 24;
-    const MINUTES_PER_HOUR   = 60;
-    const MINUTES_PER_DAY    = 60 * 24;
+    const MONTHS_PER_YEAR = 12;
+    const DAYS_PER_WEEK = 7;
+    const HOURS_PER_DAY = 24;
+    const MINUTES_PER_HOUR = 60;
+    const MINUTES_PER_DAY = 60 * 24;
     const SECONDS_PER_MINUTE = 60;
-    const SECONDS_PER_HOUR   = 60 * 60;
-    const SECONDS_PER_DAY    = 60 * 60 * 24;
-    const MICROS_PER_SECOND  = 1000 * 1000;
-    const MICROS_PER_MINUTE  = 1000 * 1000 * 60;
-    const MICROS_PER_HOUR    = 1000 * 1000 * 60 * 60;
-    const MICROS_PER_DAY     = 1000 * 1000 * 60 * 60 * 24;
+    const SECONDS_PER_HOUR = 60 * 60;
+    const SECONDS_PER_DAY = 60 * 60 * 24;
+    const MICROS_PER_SECOND = 1000 * 1000;
+    const MICROS_PER_MINUTE = 1000 * 1000 * 60;
+    const MICROS_PER_HOUR = 1000 * 1000 * 60 * 60;
+    const MICROS_PER_DAY = 1000 * 1000 * 60 * 60 * 24;
 
     /**
      * Creates an instance of date-time from year, month, day, hour, minute, second and microsecond.
      *
-     * @throws DateTimeException If the value of any field is out of range.
+     * @throws DateTimeException if the value of any field is out of range
      */
-    public static function of(int $year, int $month, int $day, int $hour = 0, int $minute = 0, int $second = 0, int $micro = 0, \DateTimeZone $timeZone = null): DateTime
+    public static function of(int $year, int $month, int $day, int $hour = 0, int $minute = 0, int $second = 0, int $micro = 0, \DateTimeZone $timeZone = null): self
     {
         Field::check(Field::year(), $year);
         Field::check(Field::monthOfYear(), $month);
@@ -49,16 +52,16 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
             $micro
         );
 
-        return new DateTime($text, $timeZone);
+        return new self($text, $timeZone);
     }
 
     /**
      * Creates an instance of date-time using seconds from the epoch of 1970-01-01T00:00:00Z.
      */
-    public static function ofEpochSecond(int $epochSecond, int $microAdjustment = 0, \DateTimeZone $timeZone = null): DateTime
+    public static function ofEpochSecond(int $epochSecond, int $microAdjustment = 0, \DateTimeZone $timeZone = null): self
     {
         $micros = $microAdjustment % self::MICROS_PER_SECOND;
-        $epochSecond += ($microAdjustment - $micros) / self::MICROS_PER_SECOND;
+        $epochSecond += intdiv($microAdjustment - $micros, self::MICROS_PER_SECOND);
 
         if ($micros < 0) {
             $micros += self::MICROS_PER_SECOND;
@@ -71,19 +74,19 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
             $text .= '.' . sprintf('%06d', $micros);
         }
 
-        return new DateTime($text, $timeZone);
+        return new self($text, $timeZone);
     }
 
     /**
      * Create an instance of date-time from DateTimeInterface.
      */
-    public static function from(\DateTimeInterface $dateTime): DateTime
+    public static function from(\DateTimeInterface $dateTime): self
     {
-        if ($dateTime instanceof DateTime) {
+        if ($dateTime instanceof self) {
             return $dateTime;
         }
 
-        return new DateTime($dateTime->format('Y-m-d H:i:s.u'), $dateTime->getTimeZone());
+        return new self($dateTime->format('Y-m-d H:i:s.u'), $dateTime->getTimeZone());
     }
 
     /**
@@ -99,12 +102,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
             $warnings = $errors['warnings'];
             $position = key($warnings);
             $message = $warnings[$position];
-            throw new DateTimeException(sprintf(
-                'Failed to parse date-time string "%s" at %d: %s',
-                $dateTimeString,
-                $position,
-                $message
-            ));
+            throw new DateTimeException(sprintf('Failed to parse date-time string "%s" at %d: %s', $dateTimeString, $position, $message));
         }
     }
 
@@ -199,7 +197,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specified field set to a new value.
      */
-    public function with(FieldInterface $field, int $newValue): DateTime
+    public function with(FieldInterface $field, int $newValue): self
     {
         return $field->adjustInto($this, $newValue);
     }
@@ -207,11 +205,11 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the time altered.
      */
-    public function withTime(int $hour, int $minute, int $second = 0, int $micro = 0): DateTime
+    public function withTime(int $hour, int $minute, int $second = 0, int $micro = 0): self
     {
         $fields = $this->getDateTimeFields();
 
-        return DateTime::of(
+        return self::of(
             $fields[Field::YEAR],
             $fields[Field::MONTH_OF_YEAR],
             $fields[Field::DAY_OF_MONTH],
@@ -226,11 +224,11 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the micro-of-second altered.
      */
-    public function withMicro(int $micro): DateTime
+    public function withMicro(int $micro): self
     {
         $fields = $this->getDateTimeFields();
 
-        return DateTime::of(
+        return self::of(
             $fields[Field::YEAR],
             $fields[Field::MONTH_OF_YEAR],
             $fields[Field::DAY_OF_MONTH],
@@ -245,11 +243,11 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the second-of-minute altered.
      */
-    public function withSecond(int $second): DateTime
+    public function withSecond(int $second): self
     {
         $fields = $this->getDateTimeFields();
 
-        return DateTime::of(
+        return self::of(
             $fields[Field::YEAR],
             $fields[Field::MONTH_OF_YEAR],
             $fields[Field::DAY_OF_MONTH],
@@ -264,11 +262,11 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the minute-of-hour altered.
      */
-    public function withMinute(int $minute): DateTime
+    public function withMinute(int $minute): self
     {
         $fields = $this->getDateTimeFields();
 
-        return DateTime::of(
+        return self::of(
             $fields[Field::YEAR],
             $fields[Field::MONTH_OF_YEAR],
             $fields[Field::DAY_OF_MONTH],
@@ -283,11 +281,11 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the hour-of-day altered.
      */
-    public function withHour(int $hour): DateTime
+    public function withHour(int $hour): self
     {
         $fields = $this->getDateTimeFields();
 
-        return DateTime::of(
+        return self::of(
             $fields[Field::YEAR],
             $fields[Field::MONTH_OF_YEAR],
             $fields[Field::DAY_OF_MONTH],
@@ -302,11 +300,11 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the date altered.
      */
-    public function withDate(int $year, int $month, int $day): DateTime
+    public function withDate(int $year, int $month, int $day): self
     {
         $fields = $this->getDateTimeFields();
 
-        return DateTime::of(
+        return self::of(
             $year,
             $month,
             $day,
@@ -321,11 +319,11 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the day-of-month altered.
      */
-    public function withDay(int $day): DateTime
+    public function withDay(int $day): self
     {
         $fields = $this->getDateTimeFields();
 
-        return DateTime::of(
+        return self::of(
             $fields[Field::YEAR],
             $fields[Field::MONTH_OF_YEAR],
             $day,
@@ -340,16 +338,16 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the month-of-year altered.
      */
-    public function withMonth(int $month): DateTime
+    public function withMonth(int $month): self
     {
         Field::check(Field::monthOfYear(), $month);
 
         $fields = $this->getDateTimeFields();
 
-        list ($year, $month, $day) =
+        list($year, $month, $day) =
             $this->resolveDate($fields[Field::YEAR], $month, $fields[Field::DAY_OF_MONTH]);
 
-        return DateTime::of(
+        return self::of(
             $year,
             $month,
             $day,
@@ -364,16 +362,16 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the year altered.
      */
-    public function withYear(int $year): DateTime
+    public function withYear(int $year): self
     {
         Field::check(Field::year(), $year);
 
         $fields = $this->getDateTimeFields();
 
-        list ($year, $month, $day) =
+        list($year, $month, $day) =
             $this->resolveDate($year, $fields[Field::MONTH_OF_YEAR], $fields[Field::DAY_OF_MONTH]);
 
-        return DateTime::of(
+        return self::of(
             $year,
             $month,
             $day,
@@ -388,7 +386,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a zoned date-time formed from this date-time and the specified time-zone.
      */
-    public function withTimeZone(\DateTimeZone $timeZone): DateTime
+    public function withTimeZone(\DateTimeZone $timeZone): self
     {
         return $this->setTimeZone($timeZone);
     }
@@ -396,7 +394,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specified amount added.
      */
-    public function plus(int $amount, UnitInterface $unit)
+    public function plus(int $amount, UnitInterface $unit): self
     {
         return $unit->addTo($this, $amount);
     }
@@ -404,7 +402,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specific duration added.
      */
-    public function plusDuration(Duration $duration): DateTime
+    public function plusDuration(Duration $duration): self
     {
         if ($duration->isZero()) {
             return $this;
@@ -418,7 +416,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specified period in microseconds added.
      */
-    public function plusMicros(int $micros): DateTime
+    public function plusMicros(int $micros): self
     {
         if ($micros === 0) {
             return $this;
@@ -447,7 +445,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specified period in seconds added.
      */
-    public function plusSeconds(int $seconds): DateTime
+    public function plusSeconds(int $seconds): self
     {
         if ($seconds === 0) {
             return $this;
@@ -462,7 +460,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specified period in minutes added.
      */
-    public function plusMinutes(int $minutes): DateTime
+    public function plusMinutes(int $minutes): self
     {
         if ($minutes === 0) {
             return $this;
@@ -477,7 +475,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specified period in hours added.
      */
-    public function plusHours(int $hours): DateTime
+    public function plusHours(int $hours): self
     {
         if ($hours === 0) {
             return $this;
@@ -492,7 +490,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specified period in days added.
      */
-    public function plusDays(int $days): DateTime
+    public function plusDays(int $days): self
     {
         if ($days === 0) {
             return $this;
@@ -507,7 +505,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specified period in weeks added.
      */
-    public function plusWeeks(int $weeks): DateTime
+    public function plusWeeks(int $weeks): self
     {
         if ($weeks === 0) {
             return $this;
@@ -522,7 +520,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specified period in months added.
      */
-    public function plusMonths(int $months): DateTime
+    public function plusMonths(int $months): self
     {
         if ($months === 0) {
             return $this;
@@ -544,7 +542,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specified period in years added.
      */
-    public function plusYears(int $years): DateTime
+    public function plusYears(int $years): self
     {
         if ($years === 0) {
             return $this;
@@ -566,7 +564,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specified amount subtracted.
      */
-    public function minus(int $amount, UnitInterface $unit): DateTime
+    public function minus(int $amount, UnitInterface $unit): self
     {
         return $unit->addTo($this, -$amount);
     }
@@ -574,7 +572,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specific duration subtracted.
      */
-    public function minusDuration(Duration $duration): DateTime
+    public function minusDuration(Duration $duration): self
     {
         if ($duration->isZero()) {
             return $this;
@@ -588,7 +586,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specified period in microseconds subtracted.
      */
-    public function minusMicros(int $micros): DateTime
+    public function minusMicros(int $micros): self
     {
         return $this->plusMicros(-$micros);
     }
@@ -596,7 +594,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specified period in seconds subtracted.
      */
-    public function minusSeconds(int $seconds): DateTime
+    public function minusSeconds(int $seconds): self
     {
         return $this->plusSeconds(-$seconds);
     }
@@ -604,7 +602,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specified period in minutes subtracted.
      */
-    public function minusMinutes(int $minutes): DateTime
+    public function minusMinutes(int $minutes): self
     {
         return $this->plusMinutes(-$minutes);
     }
@@ -612,7 +610,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specified period in hours subtracted.
      */
-    public function minusHours(int $hours): DateTime
+    public function minusHours(int $hours): self
     {
         return $this->plusHours(-$hours);
     }
@@ -620,7 +618,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specified period in days subtracted.
      */
-    public function minusDays(int $days): DateTime
+    public function minusDays(int $days): self
     {
         return $this->plusDays(-$days);
     }
@@ -628,7 +626,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specified period in weeks subtracted.
      */
-    public function minusWeeks(int $weeks): DateTime
+    public function minusWeeks(int $weeks): self
     {
         return $this->plusWeeks(-$weeks);
     }
@@ -636,7 +634,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specified period in months subtracted.
      */
-    public function minusMonths(int $months): DateTime
+    public function minusMonths(int $months): self
     {
         return $this->plusMonths(-$months);
     }
@@ -644,7 +642,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     /**
      * Returns a copy of this date-time with the specified period in years subtracted.
      */
-    public function minusYears(int $years): DateTime
+    public function minusYears(int $years): self
     {
         return $this->plusYears(-$years);
     }
@@ -678,7 +676,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
      */
     public function toDateTimeString(): string
     {
-        list ($date, $time, $micros) =
+        list($date, $time, $micros) =
             explode(' ', $this->format('Y-m-d H:i:s u'));
 
         return $date . ' ' . $time . ($micros != 0 ? rtrim('.' . $micros, '0') : '');
@@ -689,7 +687,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
      */
     public function toTimeString(): string
     {
-        list ($time, $micros) = explode(' ', $this->format('H:i:s u'));
+        list($time, $micros) = explode(' ', $this->format('H:i:s u'));
 
         return $time . ($micros != 0 ? rtrim('.' . $micros, '0') : '');
     }
@@ -699,7 +697,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
      */
     public function __toString(): string
     {
-        list ($dateTime, $micros, $timeZone) =
+        list($dateTime, $micros, $timeZone) =
             explode(' ', $this->format('Y-m-d\TH:i:s u P'));
 
         $micros = $micros != 0 ? rtrim('.' . $micros, '0') : '';
@@ -709,7 +707,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
     }
 
     /**
-     * {@inheritDoc}
+     * {@inheritdoc}
      */
     public function jsonSerialize()
     {
@@ -718,7 +716,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
 
     private function getDateTimeFields(): array
     {
-        list ($year, $month, $day, $hour, $minute, $second, $micro) =
+        list($year, $month, $day, $hour, $minute, $second, $micro) =
             explode(' ', $this->format('Y n j G i s u'));
 
         return [
@@ -728,7 +726,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
             Field::HOUR_OF_DAY => (int) $hour,
             Field::MINUTE_OF_HOUR => (int) $minute,
             Field::SECOND_OF_MINUTE => (int) $second,
-            Field::MICRO_OF_SECOND => (int) $micro
+            Field::MICRO_OF_SECOND => (int) $micro,
         ];
     }
 

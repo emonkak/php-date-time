@@ -6,25 +6,30 @@ namespace Emonkak\DateTime;
 
 /**
  * Represents a time interval.
+ *
+ * @template TDateTime of \DateTimeInterface
  */
 class Interval
 {
     /**
      * The start datetime, inclusive.
      *
-     * @var \DateTimeInterface
+     * @var TDateTime
      */
     private $start;
 
     /**
      * The end datetime, exclusive.
      *
-     * @var \DateTimeInterface
+     * @var TDateTime
      */
     private $end;
 
     /**
      * @throws DateTimeException if the end is before the start
+     *
+     * @param TDateTime $startInclusive
+     * @param TDateTime $endExclusive
      */
     public function __construct(\DateTimeInterface $startInclusive, \DateTimeInterface $endExclusive)
     {
@@ -38,6 +43,8 @@ class Interval
 
     /**
      * Returns the start datetime, inclusive, of this Interval.
+     *
+     * @return TDateTime
      */
     public function getStart(): \DateTimeInterface
     {
@@ -46,6 +53,8 @@ class Interval
 
     /**
      * Returns the end datetime, exclusive, of this Interval.
+     *
+     * @return TDateTime
      */
     public function getEnd(): \DateTimeInterface
     {
@@ -54,33 +63,42 @@ class Interval
 
     /**
      * Returns a copy of this Interval with the start datetime altered.
+     *
+     * @param TDateTime $start
+     * @return self<TDateTime>
      */
-    public function withStart(\DateTimeInterface $start): Interval
+    public function withStart(\DateTimeInterface $start): self
     {
-        return new Interval($start, $this->end);
+        return new self($start, $this->end);
     }
 
     /**
      * Returns a copy of this Interval with the end datetime altered.
+     *
+     * @param TDateTime $end
+     * @return self<TDateTime>
      */
-    public function withEnd(\DateTimeInterface $end): Interval
+    public function withEnd(\DateTimeInterface $end): self
     {
-        return new Interval($this->start, $end);
+        return new self($this->start, $end);
     }
 
     /**
      * Gets the gap between this interval and another interval.
+     *
+     * @param self<TDateTime> $other
+     * @return self<TDateTime>
      */
-    public function gap(Interval $other): ?Interval
+    public function gap(self $other): ?self
     {
         $otherStart = $other->start;
         $otherEnd = $other->end;
         $thisStart = $this->start;
         $thisEnd = $this->end;
         if ($thisStart > $otherEnd) {
-            return new Interval($otherEnd, $thisStart);
-        } else if ($otherStart > $thisEnd) {
-            return new Interval($thisEnd, $otherStart);
+            return new self($otherEnd, $thisStart);
+        } elseif ($otherStart > $thisEnd) {
+            return new self($thisEnd, $otherStart);
         } else {
             return null;
         }
@@ -89,7 +107,7 @@ class Interval
     /**
      * Gets the overlap between this interval and another interval.
      */
-    public function overlap(Interval $other): ?Interval
+    public function overlap(self $other): ?self
     {
         if (!$this->overlaps($other)) {
             return null;
@@ -100,13 +118,13 @@ class Interval
         $thisEnd = $this->end;
         $start = $thisStart > $otherStart ? $thisStart : $otherStart;
         $end = $thisEnd < $otherEnd ? $thisEnd : $otherEnd;
-        return new Interval($start, $end);
+        return new self($start, $end);
     }
 
     /**
      * Gets the covered interval between this Interval and another interval.
      */
-    public function cover(Interval $other): Interval
+    public function cover(self $other): self
     {
         $otherStart = $other->start;
         $otherEnd = $other->end;
@@ -114,13 +132,13 @@ class Interval
         $thisEnd = $this->end;
         $start = $thisStart < $otherStart ? $thisStart : $otherStart;
         $end = $thisEnd > $otherEnd ? $thisEnd : $otherEnd;
-        return new Interval($start, $end);
+        return new self($start, $end);
     }
 
     /**
      * Gets the union between this Interval and another interval.
      */
-    public function union(Interval $other): ?Interval
+    public function union(self $other): ?self
     {
         if (!$this->overlaps($other)) {
             return null;
@@ -131,7 +149,7 @@ class Interval
     /**
      * Joins the interval between the adjacent.
      */
-    public function join(Interval $other): ?Interval
+    public function join(self $other): ?self
     {
         if (!$this->abuts($other)) {
             return null;
@@ -150,7 +168,7 @@ class Interval
     /**
      * Returns whether this interval abut with the interval specified.
      */
-    public function abuts(Interval $other): bool
+    public function abuts(self $other): bool
     {
         $otherStart = $other->start;
         $otherEnd = $other->end;
@@ -162,7 +180,7 @@ class Interval
     /**
      * Returns whether this interval contain the specified interval.
      */
-    public function contains(Interval $other): bool
+    public function contains(self $other): bool
     {
         $otherStart = $other->start;
         $otherEnd = $other->end;
@@ -173,6 +191,8 @@ class Interval
 
     /**
      * Returns whether this interval contain the specified date-time.
+     *
+     * @param TDateTime $dateTime
      */
     public function containsDateTime(\DateTimeInterface $dateTime): bool
     {
@@ -184,7 +204,7 @@ class Interval
     /**
      * Checks if this Interval is equal to the specified time.
      */
-    public function isEqualTo(Interval $other): bool
+    public function isEqualTo(self $other): bool
     {
         return $this->start->format('U.u') === $other->start->format('U.u')
                && $this->end->format('U.u') === $other->end->format('U.u');
@@ -193,7 +213,7 @@ class Interval
     /**
      * Does this interval overlap the specified interval.
      */
-    public function overlaps(Interval $other): bool
+    public function overlaps(self $other): bool
     {
         $otherStart = $other->start;
         $otherEnd = $other->end;

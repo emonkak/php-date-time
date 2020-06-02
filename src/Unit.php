@@ -21,7 +21,7 @@ final class Unit implements UnitInterface
     const FOREVER = 'forever';
 
     /**
-     * @var string
+     * @var self::*
      */
     private $name;
 
@@ -116,7 +116,7 @@ final class Unit implements UnitInterface
                 return new Unit($name, Duration::ofSeconds(60 * 60 * 24 * 7));
 
             case self::MONTH:
-                return new Unit($name, Duration::ofSeconds(31556952 / 12));
+                return new Unit($name, Duration::ofSeconds(intdiv(31556952, 12)));
 
             case self::YEAR:
                 return new Unit($name, Duration::ofSeconds(31556952));
@@ -129,6 +129,9 @@ final class Unit implements UnitInterface
         }
     }
 
+    /**
+     * @param self::* $name
+     */
     private function __construct(string $name, Duration $duration)
     {
         $this->name = $name;
@@ -228,19 +231,21 @@ final class Unit implements UnitInterface
 
     private function diffSeconds(\DateTimeInterface $startInclusive, \DateTimeInterface $endExclusive): int
     {
-        $dateInterval = $startInclusive->diff($endExclusive);
+        $startInclusive = DateTime::from($startInclusive);
+        $endExclusive = DateTime::from($endExclusive);
 
-        $seconds = $dateInterval->days * DateTime::SECONDS_PER_DAY
-            + $dateInterval->h * DateTime::SECONDS_PER_HOUR
-            + $dateInterval->i * DateTime::SECONDS_PER_MINUTE
-            + $dateInterval->s;
-
-        if ($dateInterval->f < 0 && $seconds > 0) {
-            $seconds--;
-        }
-
-        if ($dateInterval->invert) {
-            $seconds = -$seconds;
+        $seconds = $endExclusive->getTimestamp() - $startInclusive->getTimestamp();
+        if ($seconds != 0) {
+            $micros = $endExclusive->getMicro() - $startInclusive->getMicro();
+            if ($seconds < 0) {
+                if ($micros > 0) {
+                    $seconds++;
+                }
+            } else {
+                if ($micros < 0) {
+                    $seconds--;
+                }
+            }
         }
 
         return $seconds;
