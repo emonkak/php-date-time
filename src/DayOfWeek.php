@@ -9,13 +9,13 @@ namespace Emonkak\DateTime;
  */
 final class DayOfWeek
 {
-    const MONDAY    = 1;
-    const TUESDAY   = 2;
+    const MONDAY = 1;
+    const TUESDAY = 2;
     const WEDNESDAY = 3;
-    const THURSDAY  = 4;
-    const FRIDAY    = 5;
-    const SATURDAY  = 6;
-    const SUNDAY    = 7;
+    const THURSDAY = 4;
+    const FRIDAY = 5;
+    const SATURDAY = 6;
+    const SUNDAY = 7;
 
     /**
      * The ISO-8601 value for the day of the week, from 1 (Monday) to 7 (Sunday).
@@ -180,7 +180,7 @@ final class DayOfWeek
             4 => 'Thursday',
             5 => 'Friday',
             6 => 'Saturday',
-            7 => 'Sunday'
+            7 => 'Sunday',
         ][$this->value];
     }
 }

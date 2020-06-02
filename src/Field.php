@@ -22,17 +22,17 @@ final class Field implements FieldInterface
     const YEAR = 'year';
 
     /**
-     * @var string
+     * @var self::*
      */
     private $name;
 
     /**
-     * @var Unit
+     * @var UnitInterface
      */
     private $baseUnit;
 
     /**
-     * @var Unit
+     * @var UnitInterface
      */
     private $rangeUnit;
 
@@ -60,13 +60,7 @@ final class Field implements FieldInterface
     public static function check(FieldInterface $field, int $value): void
     {
         if (!$field->validate($value)) {
-            throw new DateTimeException(sprintf(
-                'Invalid %s field: %d is not in the range %d to %d.',
-                $field,
-                $value,
-                $field->getMinValue(),
-                $field->getMaxValue()
-            ));
+            throw new DateTimeException(sprintf('Invalid %s field: %d is not in the range %d to %d.', $field->__toString(), $value, $field->getMinValue(), $field->getMaxValue()));
         }
     }
 
@@ -166,6 +160,9 @@ final class Field implements FieldInterface
         }
     }
 
+    /**
+     * @param self::* $name
+     */
     private function __construct(string $name, UnitInterface $baseUnit, UnitInterface $rangeUnit, int $minValue, int $maxValue)
     {
         $this->name = $name;

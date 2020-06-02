@@ -2,6 +2,9 @@ language: php
 
 php:
   - 7.1
+  - 7.2
+  - 7.3
+  - 7.4
 
 cache:
   directories:
@@ -13,9 +16,11 @@ before_script:
 
 script:
   - mkdir -p build/logs
-  - phpunit --coverage-clover build/logs/clover.xml
+  - ./vendor/bin/psalm --no-progress
+  - ./vendor/bin/php-cs-fixer fix -v --dry-run --stop-on-violation --using-cache=no
+  - ./vendor/bin/phpunit --verbose --coverage-clover build/logs/clover.xml
 
 after_script:
-  - php vendor/bin/coveralls
+  - travis_retry php ./vendor/bin/php-coveralls
 
 sudo: false

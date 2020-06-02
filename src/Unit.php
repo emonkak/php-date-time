@@ -21,7 +21,7 @@ final class Unit implements UnitInterface
     const FOREVER = 'forever';
 
     /**
-     * @var string
+     * @var self::*
      */
     private $name;
 
@@ -116,7 +116,7 @@ final class Unit implements UnitInterface
                 return new Unit($name, Duration::ofSeconds(60 * 60 * 24 * 7));
 
             case self::MONTH:
-                return new Unit($name, Duration::ofSeconds(31556952 / 12));
+                return new Unit($name, Duration::ofSeconds(intdiv(31556952, 12)));
 
             case self::YEAR:
                 return new Unit($name, Duration::ofSeconds(31556952));
@@ -129,6 +129,9 @@ final class Unit implements UnitInterface
         }
     }
 
+    /**
+     * @param self::* $name
+     */
     private function __construct(string $name, Duration $duration)
     {
         $this->name = $name;

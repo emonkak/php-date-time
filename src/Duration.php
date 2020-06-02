@@ -85,7 +85,7 @@ class Duration
     public static function between(\DateTimeInterface $startInclusive, \DateTimeInterface $endExclusive): Duration
     {
         $seconds = $endExclusive->getTimestamp() - $startInclusive->getTimestamp();
-        $micros = $endExclusive->format('u') - $startInclusive->format('u');
+        $micros = ((int) $endExclusive->format('u')) - ((int) $startInclusive->format('u'));
 
         return self::ofSeconds($seconds, $micros);
     }
@@ -366,7 +366,7 @@ class Duration
     /**
      * Returns a copy of this duration divided by the specified value.
      *
-     * @throws DateTimeException If the divisor is zero.
+     * @throws DateTimeException if the divisor is zero
      */
     public function dividedBy(int $divisor): Duration
     {
