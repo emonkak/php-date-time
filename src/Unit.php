@@ -255,8 +255,7 @@ final class Unit implements UnitInterface
     {
         $dateInterval = $startInclusive->diff($endExclusive);
 
-        $months = $dateInterval->y * DateTime::MONTHS_PER_YEAR
-            + $dateInterval->m;
+        $months = $dateInterval->y * DateTime::MONTHS_PER_YEAR + $dateInterval->m;
 
         if ($dateInterval->invert) {
             $months = -$months;
