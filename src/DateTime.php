@@ -29,13 +29,13 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
      */
     public static function of(int $year, int $month, int $day, int $hour = 0, int $minute = 0, int $second = 0, int $micro = 0, \DateTimeZone $timeZone = null): self
     {
-        Field::check(Field::year(), $year);
-        Field::check(Field::monthOfYear(), $month);
-        Field::check(Field::dayOfMonth(), $day);
-        Field::check(Field::hourOfDay(), $hour);
-        Field::check(Field::minuteOfHour(), $minute);
-        Field::check(Field::secondOfMinute(), $second);
-        Field::check(Field::microOfSecond(), $micro);
+        Field::year()->check($year);
+        Field::monthOfYear()->check($month);
+        Field::dayOfMonth()->check($day);
+        Field::hourOfDay()->check($hour);
+        Field::minuteOfHour()->check($minute);
+        Field::secondOfMinute()->check($second);
+        Field::microOfSecond()->check($micro);
 
         if (!checkdate($month, $day, abs($year))) {
             throw new DateTimeException(sprintf('Invalid day of month: %04d-%02d-%02d', $year, $month, $day));
@@ -340,7 +340,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
      */
     public function withMonth(int $month): self
     {
-        Field::check(Field::monthOfYear(), $month);
+        Field::monthOfYear()->check($month);
 
         $fields = $this->getDateTimeFields();
 
@@ -364,7 +364,7 @@ class DateTime extends \DateTimeImmutable implements \JsonSerializable
      */
     public function withYear(int $year): self
     {
-        Field::check(Field::year(), $year);
+        Field::year()->check($year);
 
         $fields = $this->getDateTimeFields();
 

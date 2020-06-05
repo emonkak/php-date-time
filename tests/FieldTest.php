@@ -54,7 +54,7 @@ class FieldTest extends AbstractTestCase
 
     public function testCheck(): void
     {
-        Field::check(Field::secondOfMinute(), 0);
+        Field::secondOfMinute()->check(0);
 
         $this->assertTrue(true);
     }
@@ -64,7 +64,7 @@ class FieldTest extends AbstractTestCase
      */
     public function testCheckWithOutOfRangeValue(): void
     {
-        Field::check(Field::secondOfMinute(), 60);
+        Field::secondOfMinute()->check(60);
     }
 
     public function testMicroOfSecond(): void

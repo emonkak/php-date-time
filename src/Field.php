@@ -57,13 +57,6 @@ final class Field implements FieldInterface
         return $values[$name];
     }
 
-    public static function check(FieldInterface $field, int $value): void
-    {
-        if (!$field->validate($value)) {
-            throw new DateTimeException(sprintf('Invalid %s field: %d is not in the range %d to %d.', $field->__toString(), $value, $field->getMinValue(), $field->getMaxValue()));
-        }
-    }
-
     public static function microOfSecond(): Field
     {
         return self::of(self::MICRO_OF_SECOND);
@@ -275,6 +268,16 @@ final class Field implements FieldInterface
     public function validate(int $value): bool
     {
         return $this->minValue <= $value && $value <= $this->maxValue;
+    }
+
+    /**
+     * @throws DateTimeException
+     */
+    public function check(int $value): void
+    {
+        if (!$this->validate($value)) {
+            throw new DateTimeException(sprintf('Invalid %s field: %d is not in the range %d to %d.', $this->__toString(), $value, $this->getMinValue(), $this->getMaxValue()));
+        }
     }
 
     public function __toString(): string
